@@ -62,4 +62,7 @@ public class User {
     public void setRoles() {
         this.roles = roles;
     }
+
+    public <E> void setRoles(Set<E> user) {
+    }
 }
