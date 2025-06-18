@@ -16,8 +16,10 @@ public class Role {
     @Column(nullable = false, unique = true)
     private String name;
 
-    private String description;
-
     @ManyToMany(mappedBy = "roles")
     private Set<User> users;
+
+    public String getName() {
+        return name;
+    }
 }
