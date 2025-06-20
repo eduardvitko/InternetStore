@@ -58,11 +58,8 @@ public class User {
     public Set<Role> getRoles() {
         return roles;
     }
-
-    public void setRoles() {
+    public void setRoles(Set<Role> roles) {
         this.roles = roles;
     }
 
-    public <E> void setRoles(Set<E> user) {
-    }
 }

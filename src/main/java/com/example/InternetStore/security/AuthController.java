@@ -2,6 +2,7 @@ package com.example.InternetStore.security;
 
 import com.example.InternetStore.model.Role;
 import com.example.InternetStore.model.User;
+import com.example.InternetStore.reposietories.RoleRepository;
 import com.example.InternetStore.reposietories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -31,6 +32,8 @@ public class AuthController {
 
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private RoleRepository roleRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -40,11 +43,13 @@ public class AuthController {
         if (userRepository.findByUsername((String) request.getUsername()).isPresent()) {
             return ResponseEntity.badRequest().body("Username already exists");
         }
-
+        Role userRole = roleRepository.findByName("USER")
+                .orElseGet(() -> roleRepository.save(new Role("USER"))); // если не найдена, создаём
         User user = new User();
-        user.setUsername((String) request.getUsername());
-        user.setPasswordHash(passwordEncoder.encode((CharSequence) request.getPassword()));
-        user.setRoles(Set.of(new Role("USER"))); // если ты хочешь задать роль по умолчанию
+        user.setUsername(request.getUsername());
+        user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
+        user.setRoles(Set.of(userRole)); // передаём СУЩЕСТВУЮЩУЮ или сохранённую роль
+
 
         userRepository.save(user);
         return ResponseEntity.ok("User registered successfully");
