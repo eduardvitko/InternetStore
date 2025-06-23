@@ -40,14 +40,18 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<String> register(@RequestBody AuthRequest request) {
-        if (userRepository.findByUsername((String) request.getUsername()).isPresent()) {
+        if (userRepository.findByPhone((String) request.getPhone()).isPresent())
+            return ResponseEntity.badRequest().body("Phone already exists");
+
+        if (userRepository.findByUsername((String) request.getUsername()).isPresent())
             return ResponseEntity.badRequest().body("Username already exists");
-        }
+
         Role userRole = roleRepository.findByName("USER")
                 .orElseGet(() -> roleRepository.save(new Role("USER"))); // если не найдена, создаём
         User user = new User();
         user.setUsername(request.getUsername());
         user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
+        user.setPhone(request.getPhone());
         user.setRoles(Set.of(userRole)); // передаём СУЩЕСТВУЮЩУЮ или сохранённую роль
 
 

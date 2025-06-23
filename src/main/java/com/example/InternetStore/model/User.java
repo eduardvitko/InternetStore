@@ -54,6 +54,9 @@ public class User {
     public void setPasswordHash(String passwordHash) {
         this.passwordHash = passwordHash;
     }
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
 
     public Set<Role> getRoles() {
         return roles;
