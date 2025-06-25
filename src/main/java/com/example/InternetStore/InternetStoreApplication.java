@@ -21,20 +21,19 @@ public class InternetStoreApplication {
 //	public CommandLineRunner init(UserRepository userRepo, RoleRepository roleRepo, PasswordEncoder encoder) {
 //		return args -> {
 //			if (userRepo.findByUsername("admin").isEmpty()) {
-//				Role adminRole = roleRepo.findByName("ROLE_ADMIN")
-//						.orElseGet(() -> roleRepo.save(new Role("ROLE_ADMIN")));
+//				Role adminRole = roleRepo.findByName("ADMIN")
+//						.orElseGet(() -> roleRepo.save(new Role("ADMIN")));
 //
 //				User admin = new User();
-//				admin.setUsername("admin - Eduard");
-//				admin.setEmail("admin@example.com");
-//				admin.setPhone("+380999999999");
-//				admin.setPasswordHash(encoder.encode("adminEduard"));
+//				admin.setUsername("admin");
+//				admin.setEmail("d@example.com");
+//				admin.setPhone("+380664521789");
+//				admin.setPasswordHash(encoder.encode("eduard"));
 //				admin.setRoles(Set.of(adminRole));
 //
 //				userRepo.save(admin);
 //			}
 //		};
-//	}
+	}
 
-}
 
