@@ -40,7 +40,7 @@ public class AdminController {
         userService.deleteById(id);
         return ResponseEntity.ok().build();
     }
-    @PutMapping("/users/{id}")
+    @PutMapping("/update/{id}")
     public ResponseEntity<?> updateUser(@PathVariable Integer id, @RequestBody User updatedUser) {
         return userService.updateUser(id, updatedUser)
                 .map(user -> ResponseEntity.ok().body("User updated"))

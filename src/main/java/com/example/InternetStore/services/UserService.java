@@ -44,13 +44,13 @@ public class UserService {
         return userRepository.existsById(id);
     };
     public Optional<User> updateUser(Integer id, User updatedUser) {
-        return userRepository.findById(id).map( existingUser -> {
+        return userRepository.findById(id).map(existingUser -> {
             existingUser.setUsername(updatedUser.getUsername());
             existingUser.setPhone(updatedUser.getPhone());
-            existingUser.setEmail(updatedUser.getEmail());
+            // обнови роли, если нужно:
             existingUser.setRoles(updatedUser.getRoles());
-            // Якщо потрібно оновити пароль — окремо обробити його кодуванням
             return userRepository.save(existingUser);
         });
     }
+
 }
