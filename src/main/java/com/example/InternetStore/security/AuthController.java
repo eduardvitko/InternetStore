@@ -40,6 +40,8 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<String> register(@RequestBody AuthRequest request) {
+        System.out.println("REGISTER: " + request.getUsername() + " | " + request.getPhone());
+
         if (userRepository.findByPhone((String) request.getPhone()).isPresent())
             return ResponseEntity.badRequest().body("Phone already exists");
 
