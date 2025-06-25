@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.GetMapping;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -28,8 +29,28 @@ public class UserService {
                     Set<String> roles = user.getRoles().stream()
                             .map(Role::getName)
                             .collect(Collectors.toSet());
-                    return new UserDto(user.getUsername(), user.getPhone(), roles);
+                    return new UserDto(user.getId(),user.getUsername(), user.getPhone(), roles);
                 })
                 .collect(Collectors.toSet());
 }
+    public void deleteById(int id) {
+        if (userRepository.existsById(id)) {
+            userRepository.deleteById(id);
+        } else {
+            throw new RuntimeException("User with ID " + id + " not found");
+        }
+    }
+    public boolean existsById(int id){
+        return userRepository.existsById(id);
+    };
+    public Optional<User> updateUser(Integer id, User updatedUser) {
+        return userRepository.findById(id).map( existingUser -> {
+            existingUser.setUsername(updatedUser.getUsername());
+            existingUser.setPhone(updatedUser.getPhone());
+            existingUser.setEmail(updatedUser.getEmail());
+            existingUser.setRoles(updatedUser.getRoles());
+            // Якщо потрібно оновити пароль — окремо обробити його кодуванням
+            return userRepository.save(existingUser);
+        });
+    }
 }

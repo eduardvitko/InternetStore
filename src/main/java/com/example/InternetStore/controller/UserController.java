@@ -43,10 +43,12 @@ public class UserController {
                 .map(role -> role.getName())
                 .collect(Collectors.toSet());
 
-        UserDto response = new UserDto(user.getUsername(), user.getPhone(), roleNames);
+        UserDto response = new UserDto(user.getId(),user.getUsername(), user.getPhone(), roleNames);
 
         return ResponseEntity.ok(response);
     }
+
+
 
 
 }
