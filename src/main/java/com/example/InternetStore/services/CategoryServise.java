@@ -47,10 +47,15 @@ public class CategoryServise {
         });
     }
     public Category create(Category category) {
-        if(categoryRepository.existsById(category.getId())){
-            throw new RuntimeException("Category with ID" + category.getId() +"already exist");
+        if (category.getName() == null || category.getName().isBlank()) {
+            throw new IllegalArgumentException("Название категории не может быть пустым");
         }
-        else return categoryRepository.save(category);
+
+        if (categoryRepository.existsByName(category.getName())) {
+            throw new IllegalArgumentException("Категория с таким названием уже существует");
+        }
+
+        return categoryRepository.save(category);
     }
 
     }
