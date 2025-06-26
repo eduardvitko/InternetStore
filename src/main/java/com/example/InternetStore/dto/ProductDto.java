@@ -13,6 +13,10 @@ public class ProductDto {
     private Integer categoryId;
     private String categoryName; // опционально, если хочешь сразу имя категории
 
+    public ProductDto() {
+    }
+
+
     public ProductDto(Product product) {
         this.id = product.getId();
         this.name = product.getName();

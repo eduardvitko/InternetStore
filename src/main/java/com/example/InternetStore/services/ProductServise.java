@@ -3,6 +3,7 @@ import com.example.InternetStore.dto.CategoryDto;
 import com.example.InternetStore.dto.ProductDto;
 import com.example.InternetStore.model.Category;
 import com.example.InternetStore.model.Product;
+import com.example.InternetStore.reposietories.CategoryRepository;
 import com.example.InternetStore.reposietories.ProductRepository;
 import org.springframework.stereotype.Service;
 
@@ -14,9 +15,11 @@ import java.util.stream.Collectors;
 public class ProductServise {
 
     private ProductRepository productRepository;
+    private CategoryRepository categoryRepository;
 
-    public ProductServise(ProductRepository productRepository){
+    public ProductServise(ProductRepository productRepository,CategoryRepository categoryRepository){
         this.productRepository = productRepository;
+        this.categoryRepository = categoryRepository;
     }
 
     public List<ProductDto> getAllProducts() {
@@ -36,25 +39,53 @@ public class ProductServise {
     public boolean existsById(int id){
         return productRepository.existsById(id);
     };
-    public Optional<Product> updateProduct(Integer id, Product updateProduct) {
-        return productRepository.findById(id).map(existingProduct -> {
-            existingProduct.setName(updateProduct.getName());
-            existingProduct.setDescription(updateProduct.getDescription());
-            existingProduct.setPrice(updateProduct.getPrice());
-            existingProduct.setStock(updateProduct.getStock());
-            return productRepository.save(existingProduct);
-        });
+    public Optional <ProductDto> getProductById(Integer id) {
+        return productRepository.findById(id)
+                .map(product -> {
+                    ProductDto dto = new ProductDto();
+                    dto.setId(product.getId());
+                    dto.setName(product.getName());
+                    dto.setDescription(product.getDescription());
+                    dto.setPrice(product.getPrice());
+                    dto.setStock(product.getStock());
+                    dto.setCategoryName(product.getCategory().getName());
+                    if (product.getCategory() != null) {
+                        dto.setCategoryId(product.getCategory().getId());
+                        dto.setCategoryName(product.getCategory().getName());
+                    }
+                    return dto;
+                });
     }
-    public Product createProduct(Product product) {
-        if (product.getName() == null || product.getName().isBlank()) {
-            throw new IllegalArgumentException("Название продукта не может быть пустым");
-        }
+    public Product createProduct(ProductDto dto) {
+        Product product = new Product();
+        product.setName(dto.getName());
+        product.setDescription(dto.getDescription());
+        product.setPrice(dto.getPrice());
+        product.setStock(dto.getStock());
 
-        if (productRepository.existsByName(product.getName())) {
-            throw new IllegalArgumentException("Продуктс таким названием уже существует");
+        if (dto.getCategoryId() != null) {
+            Category category = categoryRepository.findById(dto.getCategoryId())
+                    .orElseThrow(() -> new RuntimeException("Категорія не знайдена"));
+            product.setCategory(category);
         }
 
         return productRepository.save(product);
+    }
+
+    public Optional<Product> updateProduct(Integer id, Product updatedProduct) {
+        return productRepository.findById(id).map(existingProduct -> {
+            existingProduct.setName(updatedProduct.getName());
+            existingProduct.setDescription(updatedProduct.getDescription());
+            existingProduct.setPrice(updatedProduct.getPrice());
+            existingProduct.setStock(updatedProduct.getStock());
+
+            // Если нужно обновлять категорию:
+            if (updatedProduct.getCategory() != null) {
+                existingProduct.setCategory(updatedProduct.getCategory());
+            }
+
+            return productRepository.save(existingProduct);
+        });
     }
 
 }
