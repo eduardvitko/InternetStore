@@ -4,24 +4,53 @@ package com.example.InternetStore.services;
 import com.example.InternetStore.dto.CategoryDto;
 import com.example.InternetStore.dto.UserDto;
 import com.example.InternetStore.model.Category;
+import com.example.InternetStore.model.User;
 import com.example.InternetStore.reposietories.CategoryRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 @Service
 public class CategoryServise {
+
     private final CategoryRepository categoryRepository;
 
     public CategoryServise(CategoryRepository categoryRepository) {
         this.categoryRepository = categoryRepository;
     }
+
     public List<CategoryDto> getAllCategories() {
         return categoryRepository.findAll()
                 .stream()
                 .map(CategoryDto::new)
                 .toList();
+    }
+
+    public void deleteById(int id) {
+        if (categoryRepository.existsById(id)) {
+            categoryRepository.deleteById(id);
+        } else {
+            throw new RuntimeException("Category with ID " + id + " not found");
+        }
+    }
+
+    public boolean existsById(int id){
+        return categoryRepository.existsById(id);
+    };
+
+    public Optional<Category> updateCategory(Integer id, Category updateCategory) {
+        return categoryRepository.findById(id).map(existingCategory -> {
+            existingCategory.setName(updateCategory.getName());
+            return categoryRepository.save(existingCategory);
+        });
+    }
+    public Category create(Category category) {
+        if(categoryRepository.existsById(category.getId())){
+            throw new RuntimeException("Category with ID" + category.getId() +"already exist");
+        }
+        else return categoryRepository.save(category);
     }
 
     }

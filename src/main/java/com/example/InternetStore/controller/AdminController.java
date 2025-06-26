@@ -2,6 +2,7 @@ package com.example.InternetStore.controller;
 
 import com.example.InternetStore.dto.CategoryDto;
 import com.example.InternetStore.dto.UserDto;
+import com.example.InternetStore.model.Category;
 import com.example.InternetStore.model.User;
 import com.example.InternetStore.services.CategoryServise;
 import com.example.InternetStore.services.UserService;
@@ -26,6 +27,7 @@ public class AdminController {
         this.userService = userService;
         this.categoryServise = categoryServise;
     }
+    //USER - CONTROLLERS
 
     @PostMapping("/create")
     public User createUser(@RequestBody User user) {
@@ -54,9 +56,31 @@ public class AdminController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    //CATEGORY - CONTROLLER
+
     @GetMapping("/all/categories")
     public List<CategoryDto> getAllCategories() {
         return categoryServise.getAllCategories();
+    }
+
+    @DeleteMapping("/delete/category/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> deleteCategory(@PathVariable Integer id) {
+        if (!categoryServise.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        categoryServise.deleteById(id);
+        return ResponseEntity.ok().build();
+    }
+    @PutMapping("/update/category/{id}")
+    public ResponseEntity<?> updateCategory(@PathVariable Integer id, @RequestBody Category updateCategory) {
+        return categoryServise.updateCategory(id, updateCategory)
+                .map(category -> ResponseEntity.ok().body("Category updated"))
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+    @PostMapping("/create/category")
+    public Category createCategory(@RequestBody Category category) {
+        return categoryServise.create(category);
     }
 }
 
