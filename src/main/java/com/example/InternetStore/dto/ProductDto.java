@@ -1,5 +1,7 @@
 package com.example.InternetStore.dto;
 
+import com.example.InternetStore.model.Product;
+
 import java.math.BigDecimal;
 
 public class ProductDto {
@@ -11,6 +13,18 @@ public class ProductDto {
     private Integer categoryId;
     private String categoryName; // опционально, если хочешь сразу имя категории
 
+    public ProductDto(Product product) {
+        this.id = product.getId();
+        this.name = product.getName();
+        this.description = product.getDescription();
+        this.price = product.getPrice();
+        this.stock = product.getStock();
+
+        if (product.getCategory() != null) {
+            this.categoryId = product.getCategory().getId();
+            this.categoryName = product.getCategory().getName();
+        }
+    }
     // Геттеры и сеттеры
     public Integer getId() {
         return id;
