@@ -19,4 +19,12 @@ public class OrderItemDto {
     private int quantity;
 
     private BigDecimal price;
+
+    public OrderItemDto(Integer id, Integer id1, int quantity, BigDecimal price) {
+        this.id = id;
+        this.productId = productId;
+        this.productName = productName;
+        this.quantity = quantity;
+        this.price = price;
+    }
 }
