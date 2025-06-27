@@ -87,5 +87,11 @@ public class ProductServise {
             return productRepository.save(existingProduct);
         });
     }
+    public List<ProductDto> getProductsByCategory(Integer categoryId) {
+        List<Product> products = productRepository.findByCategoryId(categoryId);
+        return products.stream()
+                .map(ProductDto::new)
+                .collect(Collectors.toList());
+    }
 
 }

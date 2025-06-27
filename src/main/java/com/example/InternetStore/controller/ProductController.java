@@ -8,6 +8,7 @@ import com.example.InternetStore.reposietories.ProductRepository;
 import com.example.InternetStore.services.CategoryServise;
 import com.example.InternetStore.services.ProductServise;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -26,6 +27,10 @@ public class ProductController {
     @GetMapping("/all")
     public List<ProductDto> getAllProducts() {
         return productServise.getAllProducts() ;
+    }
+    @GetMapping("/by-category/{categoryId}")
+    public List<ProductDto> getProductsByCategory(@PathVariable Integer categoryId) {
+        return productServise.getProductsByCategory(categoryId);
     }
 }
 
