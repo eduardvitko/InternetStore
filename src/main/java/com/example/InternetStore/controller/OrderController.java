@@ -27,6 +27,7 @@ public class OrderController {
         return ResponseEntity.ok(orderService.getAllOrders());
     }
 
+
     // Отримати замовлення користувача за userId
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<OrderDto>> getOrdersByUser(@PathVariable Integer userId) {
