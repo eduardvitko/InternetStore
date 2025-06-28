@@ -11,9 +11,12 @@ import com.example.InternetStore.model.User;
 import com.example.InternetStore.reposietories.OrderRepository;
 import com.example.InternetStore.reposietories.ProductRepository;
 import com.example.InternetStore.reposietories.UserRepository;
+import com.example.InternetStore.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -125,6 +128,55 @@ public class OrderService {
                 itemDtos
         );
     }
+    public User getCurrentUser() {
+        CustomUserDetails userDetails = (CustomUserDetails)
+                SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        return userRepository.findById(userDetails.getId())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+    }
+    public OrderDto createOrderFromItems(User user, List<OrderItemDto> itemDtos) {
+        Order order = new Order();
+        order.setUser(user);
+        order.setOrderDate(java.time.LocalDateTime.now());
+        order.setStatus(OrderStatus.PENDING);
+
+        List<OrderItem> items = itemDtos.stream().map(dto -> {
+            OrderItem item = new OrderItem();
+            item.setOrder(order);
+            item.setProduct(productRepository.findById(dto.getProductId())
+                    .orElseThrow(() -> new RuntimeException("Product not found")));
+            item.setQuantity(dto.getQuantity());
+            item.setPrice(dto.getPrice());
+            return item;
+        }).toList();
+
+        order.setItems(items);
+        order.setTotal(items.stream()
+                .map(i -> i.getPrice().multiply(BigDecimal.valueOf(i.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add));
+
+        Order saved = orderRepository.save(order);
+
+        // Мапінг вручну
+        List<OrderItemDto> resultItems = saved.getItems().stream()
+                .map(i -> new OrderItemDto(
+                        i.getId(),
+                        i.getProduct().getId(),
+                        i.getQuantity(),
+                        i.getPrice()
+                )).toList();
+
+        return new OrderDto(
+                saved.getId(),
+                saved.getUser().getId(),
+                saved.getOrderDate(),
+                saved.getStatus().name(),
+                saved.getTotal(),
+                resultItems
+        );
+    }
+
 
 
 }

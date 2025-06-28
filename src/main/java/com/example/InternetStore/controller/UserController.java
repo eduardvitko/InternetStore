@@ -1,6 +1,7 @@
 package com.example.InternetStore.controller;
 
 import com.example.InternetStore.dto.UserDto;
+import com.example.InternetStore.model.Role;
 import com.example.InternetStore.model.User;
 import com.example.InternetStore.reposietories.UserRepository;
 import com.example.InternetStore.services.UserService;
@@ -10,6 +11,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Set;
@@ -34,19 +36,19 @@ public class UserController {
 
         String username = ((UserDetails) auth.getPrincipal()).getUsername();
 
-        User user = (User) userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
-        // Преобразуем роли в строки (например, "USER", "ADMIN")
         Set<String> roleNames = user.getRoles()
                 .stream()
-                .map(role -> role.getName())
+                .map(Role::getName)
                 .collect(Collectors.toSet());
 
-        UserDto response = new UserDto(user.getId(),user.getUsername(), user.getPhone(), roleNames);
+        UserDto response = new UserDto(user.getId(), user.getUsername(), user.getPhone(), roleNames);
 
         return ResponseEntity.ok(response);
     }
+
 
 
 

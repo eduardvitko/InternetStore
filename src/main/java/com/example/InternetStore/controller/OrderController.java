@@ -1,10 +1,15 @@
 package com.example.InternetStore.controller;
 
 import com.example.InternetStore.dto.OrderDto;
+import com.example.InternetStore.dto.OrderItemDto;
+import com.example.InternetStore.model.User;
 import com.example.InternetStore.services.OrderService;
+import com.example.InternetStore.services.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -14,6 +19,7 @@ import java.util.List;
 public class OrderController {
 
     private final OrderService orderService;
+    private  final UserService userService;
 
     // Отримати всі замовлення
     @GetMapping("/all")
@@ -29,9 +35,12 @@ public class OrderController {
 
     // Створити нове замовлення
     @PostMapping("/create")
-    public ResponseEntity<OrderDto> createOrder(@RequestBody OrderDto orderDto) {
-        OrderDto createdOrder = orderService.saveOrder(orderDto);
-        return ResponseEntity.ok(createdOrder);
+    public ResponseEntity<OrderDto> createOrder(@RequestBody List<OrderItemDto> items) {
+        User user = userService.getCurrentUser()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not authenticated"));
+
+        OrderDto dto = orderService.createOrderFromItems(user, items);
+        return ResponseEntity.ok(dto);
     }
 
     // Видалити замовлення
