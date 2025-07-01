@@ -3,6 +3,8 @@ package com.example.InternetStore.model;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "product")
@@ -29,6 +31,9 @@ public class Product {
             foreignKey = @ForeignKey(name = "fk_product_category"),
             nullable = true)
     private Category category;
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Image> images = new ArrayList<>();
+
 
     // --- Constructors ---
     public Product() {}
