@@ -4,14 +4,12 @@ package com.example.InternetStore.services;
 
 import com.example.InternetStore.dto.OrderDto;
 import com.example.InternetStore.dto.OrderItemDto;
-import com.example.InternetStore.model.Order;
-import com.example.InternetStore.model.OrderItem;
-import com.example.InternetStore.model.OrderStatus;
-import com.example.InternetStore.model.User;
+import com.example.InternetStore.model.*;
 import com.example.InternetStore.reposietories.OrderRepository;
 import com.example.InternetStore.reposietories.ProductRepository;
 import com.example.InternetStore.reposietories.UserRepository;
 import com.example.InternetStore.security.CustomUserDetails;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -135,6 +133,7 @@ public class OrderService {
         return userRepository.findById(userDetails.getId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }
+    @Transactional
     public OrderDto createOrderFromItems(User user, List<OrderItemDto> itemDtos) {
         Order order = new Order();
         order.setUser(user);
@@ -142,12 +141,23 @@ public class OrderService {
         order.setStatus(OrderStatus.PENDING);
 
         List<OrderItem> items = itemDtos.stream().map(dto -> {
+            Product product = productRepository.findById(dto.getProductId())
+                    .orElseThrow(() -> new RuntimeException("Product not found"));
+
+            if (product.getStock() < dto.getQuantity()) {
+                throw new RuntimeException("Недостатньо товару: " + product.getName());
+            }
+
+            // Зменшуємо залишок
+            product.setStock(product.getStock() - dto.getQuantity());
+            productRepository.save(product);
+
             OrderItem item = new OrderItem();
             item.setOrder(order);
-            item.setProduct(productRepository.findById(dto.getProductId())
-                    .orElseThrow(() -> new RuntimeException("Product not found")));
+            item.setProduct(product);
             item.setQuantity(dto.getQuantity());
             item.setPrice(dto.getPrice());
+
             return item;
         }).toList();
 
@@ -175,6 +185,27 @@ public class OrderService {
                 saved.getTotal(),
                 resultItems
         );
+    }
+    //відміняємо замовлення
+    @Transactional
+    public void cancelOrder(Integer orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Замовлення не знайдено"));
+
+        if (order.getStatus() == OrderStatus.CANCELLED) {
+            throw new RuntimeException("Замовлення вже скасоване");
+        }
+
+        // Повертаємо товари на склад
+        for (OrderItem item : order.getItems()) {
+            Product product = item.getProduct();
+            product.setStock(product.getStock() + item.getQuantity());
+            productRepository.save(product);
+        }
+
+        // Ставимо статус "CANCELLED"
+        order.setStatus(OrderStatus.CANCELLED);
+        orderRepository.save(order);
     }
 
 

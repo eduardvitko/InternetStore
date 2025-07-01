@@ -63,5 +63,11 @@ public class OrderController {
             return ResponseEntity.notFound().build(); // Або ResponseEntity.badRequest() з повідомленням
         }
     }
+    @PutMapping("/{id}/cancel")
+    public ResponseEntity<String> cancelOrder(@PathVariable Integer id) {
+        orderService.cancelOrder(id);
+        return ResponseEntity.ok("Замовлення скасовано, товари повернено на склад");
+    }
+
 
 }
