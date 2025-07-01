@@ -28,7 +28,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         String path = request.getServletPath();
         if (path.startsWith("/api/auth")) {
-            filterChain.doFilter(request, response); // пропускаем дальше без проверки токена
+            filterChain.doFilter(request, response);
             return;
         }
         final String authHeader = request.getHeader("Authorization");
@@ -48,9 +48,14 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 UsernamePasswordAuthenticationToken authToken =
                         new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                 SecurityContextHolder.getContext().setAuthentication(authToken);
+                System.out.println("User authenticated: " + username);
+            } else {
+                System.out.println("Invalid JWT token for user: " + username);
             }
+        } else {
+            System.out.println("No JWT token found or user already authenticated.");
         }
         filterChain.doFilter(request, response);
     }
-}
 
+}
