@@ -26,7 +26,7 @@ public class Product {
     @Column(nullable = false)
     private Integer stock = 0;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "category_id", referencedColumnName = "id",
             foreignKey = @ForeignKey(name = "fk_product_category"),
             nullable = true)
@@ -94,5 +94,11 @@ public class Product {
 
     public void setCategory(Category category) {
         this.category = category;
+    }
+    public void setImage(Image image){
+        this.images.add(image);
+    }
+    public List<Image> getImages() {
+        return images;
     }
 }

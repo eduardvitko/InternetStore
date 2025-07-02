@@ -101,7 +101,7 @@ public class AdminController {
     }
 
     @PutMapping("/update/product/{id}")
-    public ResponseEntity<?> updateProduct(@PathVariable Integer id, @RequestBody Product updatedProduct) {
+    public ResponseEntity<?> updateProduct(@PathVariable Integer id, @RequestBody ProductDto updatedProduct) {
         return productServise.updateProduct(id, updatedProduct)
                 .map(product -> ResponseEntity.ok("Продукт оновлено"))
                 .orElseGet(() -> ResponseEntity.notFound().build());

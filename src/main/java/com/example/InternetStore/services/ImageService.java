@@ -5,23 +5,34 @@ import com.example.InternetStore.model.Image;
 import com.example.InternetStore.model.Product;
 import com.example.InternetStore.reposietories.ImageRepository;
 import com.example.InternetStore.reposietories.ProductRepository;
-import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
-
 @Service
 public class ImageService {
 
     private final ImageRepository imageRepository;
     private final ProductRepository productRepository;
 
-    @Autowired
     public ImageService(ImageRepository imageRepository, ProductRepository productRepository) {
         this.imageRepository = imageRepository;
         this.productRepository = productRepository;
+    }
+
+    public ImageDto createImage(ImageDto dto) {
+        if (dto.getProductId() == null) {
+            throw new IllegalArgumentException("ProductId must not be null");
+        }
+        Product product = productRepository.findById(dto.getProductId())
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+
+        Image image = new Image(dto.getUrl(), dto.getAltText(), product);
+        Image saved = imageRepository.save(image);
+
+        return toDto(saved);
     }
 
     public List<ImageDto> getImagesByProductId(Integer productId) {
@@ -31,45 +42,50 @@ public class ImageService {
                 .collect(Collectors.toList());
     }
 
-    public ImageDto saveImage(ImageDto dto) {
-        Product product = productRepository.findById(dto.getProductId())
-                .orElseThrow(() -> new EntityNotFoundException("Product not found"));
-
-        Image image = new Image(dto.getUrl(), dto.getAltText(), product);
-        Image saved = imageRepository.save(image);
-        return toDto(saved);
+    public Optional<ImageDto> getImageById(Integer id) {
+        return imageRepository.findById(id).map(this::toDto);
     }
 
     public ImageDto updateImage(Integer id, ImageDto dto) {
         Image image = imageRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Image not found"));
+                .orElseThrow(() -> new RuntimeException("Image not found"));
 
         image.setUrl(dto.getUrl());
         image.setAltText(dto.getAltText());
 
-        if (!image.getProduct().getId().equals(dto.getProductId())) {
-            Product newProduct = productRepository.findById(dto.getProductId())
-                    .orElseThrow(() -> new EntityNotFoundException("Product not found"));
-            image.setProduct(newProduct);
+        if (dto.getProductId() == null) {
+            throw new IllegalArgumentException("ProductId не може бути null");
         }
 
-        Image updated = imageRepository.save(image);
-        return toDto(updated);
+        if (!image.getProduct().getId().equals(dto.getProductId())) {
+            Product product = productRepository.findById(dto.getProductId())
+                    .orElseThrow(() -> new RuntimeException("Product not found"));
+            image.setProduct(product);
+        }
+
+        return toDto(imageRepository.save(image));
     }
 
     public void deleteImage(Integer id) {
         if (!imageRepository.existsById(id)) {
-            throw new EntityNotFoundException("Image not found");
+            throw new RuntimeException("Image with id " + id + " not found");
         }
         imageRepository.deleteById(id);
     }
 
     private ImageDto toDto(Image image) {
         return new ImageDto(
-                image.getId().intValue(),
+                image.getId(),
                 image.getUrl(),
                 image.getAltText(),
-                image.getProduct().getId().intValue()
+                image.getProduct().getId()
         );
+    }
+
+    public List<ImageDto> getAllImages() {
+        List<Image> images = imageRepository.findAll();
+        return images.stream()
+                .map(this::toDto)
+                .collect(Collectors.toList());
     }
 }

@@ -1,10 +1,12 @@
 package com.example.InternetStore.services;
 import com.example.InternetStore.dto.CategoryDto;
+import com.example.InternetStore.dto.ImageDto;
 import com.example.InternetStore.dto.ProductDto;
 import com.example.InternetStore.model.Category;
 import com.example.InternetStore.model.Product;
 import com.example.InternetStore.reposietories.CategoryRepository;
 import com.example.InternetStore.reposietories.ProductRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -22,12 +24,8 @@ public class ProductServise {
         this.categoryRepository = categoryRepository;
     }
 
-    public List<ProductDto> getAllProducts() {
-        return productRepository.findAll()
-                .stream()
-                .map(ProductDto::new)  // теперь вызовет созданный конструктор
-                .collect(Collectors.toList());
-    }
+
+    @Transactional
     public void deleteById(int id) {
         if (productRepository.existsById(id)) {
             productRepository.deleteById(id);
@@ -35,27 +33,17 @@ public class ProductServise {
             throw new RuntimeException("Product with ID " + id + " not found");
         }
     }
-
+    @Transactional
     public boolean existsById(int id){
         return productRepository.existsById(id);
     };
-    public Optional <ProductDto> getProductById(Integer id) {
+
+    @Transactional
+    public Optional<ProductDto> getProductById(Integer id) {
         return productRepository.findById(id)
-                .map(product -> {
-                    ProductDto dto = new ProductDto();
-                    dto.setId(product.getId());
-                    dto.setName(product.getName());
-                    dto.setDescription(product.getDescription());
-                    dto.setPrice(product.getPrice());
-                    dto.setStock(product.getStock());
-                    dto.setCategoryName(product.getCategory().getName());
-                    if (product.getCategory() != null) {
-                        dto.setCategoryId(product.getCategory().getId());
-                        dto.setCategoryName(product.getCategory().getName());
-                    }
-                    return dto;
-                });
+                .map(this::mapToDto); // замість ручного створення dto
     }
+    @Transactional
     public Product createProduct(ProductDto dto) {
         Product product = new Product();
         product.setName(dto.getName());
@@ -72,26 +60,82 @@ public class ProductServise {
         return productRepository.save(product);
     }
 
-    public Optional<Product> updateProduct(Integer id, Product updatedProduct) {
+    @Transactional // Для операцій запису
+    public Optional<ProductDto> updateProduct(Integer id, ProductDto updatedProductDto) {
         return productRepository.findById(id).map(existingProduct -> {
-            existingProduct.setName(updatedProduct.getName());
-            existingProduct.setDescription(updatedProduct.getDescription());
-            existingProduct.setPrice(updatedProduct.getPrice());
-            existingProduct.setStock(updatedProduct.getStock());
+            existingProduct.setName(updatedProductDto.getName());
+            existingProduct.setDescription(updatedProductDto.getDescription());
+            existingProduct.setPrice(updatedProductDto.getPrice());
+            existingProduct.setStock(updatedProductDto.getStock());
 
-            // Если нужно обновлять категорию:
-            if (updatedProduct.getCategory() != null) {
-                existingProduct.setCategory(updatedProduct.getCategory());
+            if (updatedProductDto.getCategoryId() != null) {
+                Category newCategory = categoryRepository.findById(updatedProductDto.getCategoryId())
+                        .orElseThrow(() -> new RuntimeException("Категорію з ID " + updatedProductDto.getCategoryId() + " не знайдено для оновлення продукту."));
+                existingProduct.setCategory(newCategory);
+            } else {
+                // Можливість встановити категорію в null, якщо DTO надсилає null categoryId
+                existingProduct.setCategory(null);
             }
 
-            return productRepository.save(existingProduct);
+            // ВАЖЛИВО: Для зображень зазвичай потрібна окрема логіка для додавання/видалення.
+            // Пряме 'setImages' тут з DTO може бути проблематичним для колекцій JPA.
+            // Ви, ймовірно, маєте окремий ендпоінт для керування зображеннями, що є правильним підходом.
+
+            Product savedProduct = productRepository.save(existingProduct);
+            return mapToDto(savedProduct); // Повернути оновлений DTO
         });
     }
-    public List<ProductDto> getProductsByCategory(Integer categoryId) {
-        List<Product> products = productRepository.findByCategoryId(categoryId);
-        return products.stream()
-                .map(ProductDto::new)
+    @Transactional
+    public List<ProductDto> getAllProducts() {
+        return productRepository.findAllWithCategoryAndImages()
+                .stream()
+                .map(this::mapToDto)
                 .collect(Collectors.toList());
     }
+
+    @Transactional
+    public List<ProductDto> getProductsByCategory(Integer categoryId) {
+        List<Product> products = productRepository.findByCategoryIdWithImages(categoryId);
+        return products.stream()
+                .map(this::mapToDto)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public ProductDto mapToDto(Product product) {
+        ProductDto dto = new ProductDto();
+        dto.setId(product.getId());
+        dto.setName(product.getName());
+        dto.setDescription(product.getDescription());
+        dto.setPrice(product.getPrice());
+        dto.setStock(product.getStock());
+
+        if (product.getCategory() != null) {
+            dto.setCategoryId(product.getCategory().getId());
+            dto.setCategoryName(product.getCategory().getName());
+        }
+
+        // ***** ПЕРЕКОНАЙТЕСЯ, ЩО ЦІ ЛОГИ ТУТ *****
+        if (product.getImages() != null && !product.getImages().isEmpty()) {
+            System.out.println("DEBUG: Product ID " + product.getId() + " has " + product.getImages().size() + " images.");
+            dto.setImages(product.getImages().stream()
+                    .map(image -> {
+                        System.out.println("DEBUG:   Mapping Image ID: " + image.getId() + ", URL: " + image.getUrl() + " for product " + product.getId());
+                        return new ImageDto(image.getId(), image.getUrl(), image.getAltText(), product.getId());
+                    })
+                    .collect(Collectors.toList()));
+        } else {
+            System.out.println("DEBUG: Product ID " + product.getId() + " has NO images or images collection is empty/null.");
+        }
+        // *****************************************
+
+        return dto;
+    }
+
+
+
+
+
+
 
 }
