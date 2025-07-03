@@ -1,11 +1,12 @@
 package com.example.InternetStore.model;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-
+@Builder
 @Getter
 @Entity
 @Table(name = "payment")
@@ -52,6 +53,12 @@ public class Payment {
 
     public void setMethod(PaymentMethod method) {
         this.method = method;
+    }
+    public Integer getOrderId() {
+        return orderId;
+    }
+    public Integer getId() {
+        return id;
     }
 
     // ... інші методи, такі як equals(), hashCode(), toString()
