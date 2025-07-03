@@ -1,13 +1,14 @@
 package com.example.InternetStore.model;
 
 import jakarta.persistence.*;
-import lombok.Builder;
-import lombok.Getter;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-@Builder
-@Getter
+@Data // Генерує геттери, сеттери, toString, equals, hashCode
+@NoArgsConstructor // Генерує конструктор без аргументів
+@AllArgsConstructor // Генерує конструктор з усіма аргументами
+@Builder // Генерує патерн Builder
 @Entity
 @Table(name = "payment")
 public class Payment {
@@ -30,10 +31,7 @@ public class Payment {
     @Column(name = "method", nullable = false)
     private PaymentMethod method; // Ваш Java Enum
 
-    // Конструктори (якщо потрібні)
-    public Payment() {
-        // Конструктор за замовчуванням
-    }
+
 
     public void setId(Integer id) {
         this.id = id;
