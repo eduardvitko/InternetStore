@@ -1,7 +1,5 @@
 package com.example.InternetStore.services;
 
-
-
 import com.example.InternetStore.dto.OrderDto;
 import com.example.InternetStore.dto.OrderItemDto;
 import com.example.InternetStore.model.*;
@@ -80,6 +78,8 @@ public class OrderService {
     public void deleteOrder(Integer id) {
         orderRepository.deleteById(id);
     }
+
+    @Transactional
     public OrderDto updateOrder(Integer id, OrderDto orderDto) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Order not found with id " + id));
@@ -94,10 +94,11 @@ public class OrderService {
         // Додаємо нові позиції з DTO
         List<OrderItem> items = orderDto.getItems().stream()
                 .map(dto -> {
+                    Product product = productRepository.findById(dto.getProductId())
+                            .orElseThrow(() -> new RuntimeException("Product not found with id " + dto.getProductId()));
                     OrderItem item = new OrderItem();
                     item.setOrder(order);
-                    item.setProduct(productRepository.findById(dto.getProductId())
-                            .orElseThrow(() -> new RuntimeException("Product not found with id " + dto.getProductId())));
+                    item.setProduct(product);
                     item.setQuantity(dto.getQuantity());
                     item.setPrice(dto.getPrice());
                     return item;
@@ -126,6 +127,7 @@ public class OrderService {
                 itemDtos
         );
     }
+
     public User getCurrentUser() {
         CustomUserDetails userDetails = (CustomUserDetails)
                 SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -133,6 +135,7 @@ public class OrderService {
         return userRepository.findById(userDetails.getId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }
+
     @Transactional
     public OrderDto createOrderFromItems(User user, List<OrderItemDto> itemDtos) {
         Order order = new Order();
@@ -186,7 +189,8 @@ public class OrderService {
                 resultItems
         );
     }
-    //відміняємо замовлення
+
+    // Відміняємо замовлення
     @Transactional
     public void cancelOrder(Integer orderId) {
         Order order = orderRepository.findById(orderId)
@@ -195,6 +199,11 @@ public class OrderService {
         if (order.getStatus() == OrderStatus.CANCELLED) {
             throw new RuntimeException("Замовлення вже скасоване");
         }
+        // Додана перевірка, щоб не скасовувати вже оплачене замовлення
+        if (order.getStatus() == OrderStatus.PAID) {
+            throw new RuntimeException("Неможливо скасувати оплачене або завершене замовлення.");
+        }
+
 
         // Повертаємо товари на склад
         for (OrderItem item : order.getItems()) {
@@ -208,6 +217,23 @@ public class OrderService {
         orderRepository.save(order);
     }
 
+//    ---
+//
+//            ## Новий метод: Зміна статусу замовлення на PAID
+//
+//    ```java
+    @Transactional
+    public void markOrderAsPaid(Integer orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Замовлення не знайдено з ID: " + orderId));
 
-
+        // Перевіряємо поточний статус, щоб переконатися, що можна перевести в PAID
+        if (order.getStatus() == OrderStatus.PENDING) {
+            order.setStatus(OrderStatus.PAID);
+            orderRepository.save(order);
+        } else {
+            throw new RuntimeException("Неможливо перевести замовлення ID " + orderId +
+                    " в статус PAID. Поточний статус: " + order.getStatus());
+        }
+    }
 }
