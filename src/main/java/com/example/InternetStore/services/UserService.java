@@ -23,9 +23,9 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
-    public User create(User user) {
-        return userRepository.save(user);
-    }
+//    public User create(User user) {
+//        return userRepository.save(user);
+//    }
     public Set<UserDto> getAllUsers() {
         return userRepository.findAll().stream()
                 .map(user -> {
@@ -68,7 +68,20 @@ public class UserService {
 
             return Optional.empty();
         }
+    public UserDto create(UserDto userDto) {
+        // Мапимо DTO в Entity
+        User user = new User();
+        user.setUsername(userDto.getUsername());
+        user.setPhone(userDto.getPhone());
+        // якщо треба, додайте мапінг ролей або інших полів
 
+        User savedUser = userRepository.save(user);
 
+        // Повертаємо збережений User як UserDto (опціонально)
+        return new UserDto(savedUser.getId(), savedUser.getUsername(), savedUser.getPhone(), /*roles*/ null);
     }
+
+
+
+}
 

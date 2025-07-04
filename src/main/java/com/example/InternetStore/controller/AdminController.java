@@ -9,12 +9,21 @@ import com.example.InternetStore.model.User;
 import com.example.InternetStore.services.CategoryServise;
 import com.example.InternetStore.services.ProductServise;
 import com.example.InternetStore.services.UserService;
+import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -35,10 +44,20 @@ public class AdminController {
     //USER - CONTROLLERS
 
     @PostMapping("/create")
-    public User createUser(@RequestBody User user) {
-        return userService.create(user);
+    public ResponseEntity<?> createUser(@Valid @RequestBody UserDto userDto) {
+        try {
+            // Викличте метод сервісу, який тепер обробляє перетворення DTO на сутність
+            UserDto createdUserDto = userService.create(userDto); // Очікуємо UserDto у відповідь
+            return ResponseEntity.ok(createdUserDto); // Поверніть UserDto
+        } catch (ConstraintViolationException ex) {
+            List<String> errors = ex.getConstraintViolations().stream()
+                    .map(cv -> cv.getPropertyPath() + ": " + cv.getMessage())
+                    .collect(Collectors.toList());
+            return ResponseEntity.badRequest().body(errors);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Помилка створення користувача: " + e.getMessage(), e);
+        }
     }
-
     @GetMapping("/users")
     public Set<UserDto> getAllUsers() {
         return userService.getAllUsers();

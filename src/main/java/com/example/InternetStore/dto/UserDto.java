@@ -3,6 +3,7 @@ package com.example.InternetStore.dto;
 
 import com.example.InternetStore.model.Role;
 import com.example.InternetStore.model.User;
+import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -14,7 +15,11 @@ import java.util.stream.Collectors;
 
 public class UserDto {
     private Integer id;
+
+    @Pattern(regexp = "^[a-zA-Zа-яА-ЯіїєІЇЄґҐ]+$", message = "Ім’я користувача може містити лише літери українського або англійського алфавіту")
     private String username;
+
+    @Pattern(regexp = "^\\+?\\d+$", message = "Телефон має містити тільки цифри та може починатись з +")
     private String phone;
     private Set<String> roles;
 

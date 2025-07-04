@@ -1,6 +1,10 @@
 package com.example.InternetStore.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -18,16 +22,30 @@ public class User {
     @Column (name = "id")
     private int id;
 
-    @Column (name = "username")
+    @NotBlank(message = "Ім'я користувача не може бути порожнім")
+    @Size(min = 3, max = 30, message = "Ім'я має бути від 3 до 30 символів")
+//    @Pattern(
+//            regexp = "^[a-zA-Zа-яА-ЯіІїЇєЄґҐ]+$",
+//            message = "Ім’я користувача може містити лише літери українського або англійського алфавіту"
+//    )
+    @Column(name = "username", nullable = false)
     private String username;
 
-    @Column (name = "email")
+//    @NotBlank(message = "Email не може бути порожнім")
+//    @Email(message = "Невірний формат email")
+    @Column(name = "email")
     private String email;
 
+//    @Pattern(
+//            regexp = "\"\\\\+38\\\\d{10}\"",
+//            message = "Телефон має містити тільки цифри та може починатись з +"
+//    )
     @Column (name = "phone")
     private String phone;
 
-    @Column (name = "password_hash")
+    @NotBlank(message = "Пароль не може бути порожнім")
+    @Size(min = 8, message = "Пароль має містити щонайменше 8 символів")
+    @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
     @ManyToMany(fetch = FetchType.EAGER)
