@@ -20,6 +20,11 @@ public class ProductDto {
 
     public ProductDto() {
     }
+    public ProductDto(Integer id, String name, BigDecimal price) {
+        this.id = id;
+        this.name = name;
+        this.price = price;
+    }
 
 
     public ProductDto(Product product) {

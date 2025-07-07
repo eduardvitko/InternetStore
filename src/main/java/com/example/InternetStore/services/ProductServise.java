@@ -132,9 +132,26 @@ public class ProductServise {
         return dto;
     }
 
+//    public List<ProductDto> searchProducts(String query) {
+//        List<Product> products = productRepository.findByNameContainingIgnoreCase(query);
+//        return products.stream()
+//                .map(this::toDto)
+//                .collect(Collectors.toList());
+//    }
+    public List<ProductDto> searchProducts(String query) {
+        List<Product> products = productRepository.searchProductsWithCategoryAndImages(query.toLowerCase());
+        return products.stream()
+                .map(ProductDto::new)  // конвертуємо Product → ProductDto
+                .collect(Collectors.toList());
+    }
 
-
-
+    private ProductDto toDto(Product entity) {
+        ProductDto dto = new ProductDto();
+        dto.setId(entity.getId());
+        dto.setName(entity.getName());
+        // додай інші поля за потребою
+        return dto;
+    }
 
 
 
