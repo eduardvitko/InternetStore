@@ -1,8 +1,6 @@
 package com.example.InternetStore.services;
 
-import com.example.InternetStore.dto.OrderDto;
-import com.example.InternetStore.dto.OrderItemDto;
-import com.example.InternetStore.dto.ProductDto;
+import com.example.InternetStore.dto.*;
 import com.example.InternetStore.model.*;
 import com.example.InternetStore.reposietories.OrderRepository;
 import com.example.InternetStore.reposietories.ProductRepository;
@@ -239,4 +237,37 @@ public class OrderService {
     }
 
 
-}
+
+
+        public List<OrderWithAddressDto> getOrdersWithAddressByUserId(Integer userId) {
+            return orderRepository.findAllByUser_Id(userId)
+                    .stream()
+                    .map(this::toOrderWithAddressDto)
+                    .collect(Collectors.toList());
+        }
+
+        private OrderWithAddressDto toOrderWithAddressDto(Order order) {
+            OrderWithAddressDto dto = new OrderWithAddressDto();
+            dto.setId(order.getId());
+            dto.setOrderDate(order.getOrderDate());
+            dto.setStatus(order.getStatus().name());
+            dto.setTotal(order.getTotal());
+            dto.setAddress(toAddressDto(order.getAddress()));
+            return dto;
+        }
+
+        private AddressDto toAddressDto(Address address) {
+            if (address == null) return null;
+            AddressDto dto = new AddressDto();
+            dto.setId(address.getId());
+            dto.setCountry(address.getCountry());
+            dto.setCity(address.getCity());
+            dto.setStreet(address.getStreet());
+            dto.setHouseNumber(address.getHouseNumber());
+            dto.setApartmentNumber(address.getApartmentNumber());
+            dto.setPostalCode(address.getPostalCode());
+            dto.setRegion(address.getRegion());
+            dto.setIsDefault(address.getIsDefault());
+            return dto;
+        }
+    }

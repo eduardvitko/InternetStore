@@ -2,6 +2,7 @@ package com.example.InternetStore.controller;
 
 import com.example.InternetStore.dto.OrderDto;
 import com.example.InternetStore.dto.OrderItemDto;
+import com.example.InternetStore.dto.OrderWithAddressDto;
 import com.example.InternetStore.model.User;
 import com.example.InternetStore.services.OrderService;
 import com.example.InternetStore.services.UserService;
@@ -86,4 +87,10 @@ public class OrderController {
         }
     }
     // --- END OF NEW ENDPOINT ---
+    @GetMapping("/user/{userId}/with-address")
+    public List<OrderWithAddressDto> getUserOrdersWithAddress(@PathVariable Integer userId) {
+        return orderService.getOrdersWithAddressByUserId(userId); // ✅ правильне ім’я
+    }
+
+
 }
