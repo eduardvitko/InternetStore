@@ -14,17 +14,20 @@ public class OrderItemDto {
 
     private Integer productId;
 
-    private String productName; // Якщо хочеш відображати назву продукту на фронті
+    private String productName;
 
     private int quantity;
 
     private BigDecimal price;
 
-    public OrderItemDto(Integer id, Integer id1, int quantity, BigDecimal price) {
-        this.id = id;
-        this.productId = productId;
-        this.productName = productName;
-        this.quantity = quantity;
-        this.price = price;
-    }
+
+
+
+//    public OrderItemDto(Integer id, Integer productId, String productName, int quantity, BigDecimal price) {
+//        this.id = id;
+//        this.productId = productId;
+//        this.productName = productName;
+//        this.quantity = quantity;
+//        this.price = price;
+//    }
 }

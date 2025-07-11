@@ -112,6 +112,7 @@ public class OrderService {
                 .map(item -> new OrderItemDto(
                         item.getId(),
                         item.getProduct().getId(),
+                        item.getProduct().getName(),
                         item.getQuantity(),
                         item.getPrice()
                 ))
@@ -120,11 +121,15 @@ public class OrderService {
         return new OrderDto(
                 savedOrder.getId(),
                 savedOrder.getUser().getId(),
+                savedOrder.getUser().getUsername(),
+                savedOrder.getUser().getPhone(),
                 savedOrder.getOrderDate(),
                 savedOrder.getStatus().name(),
                 savedOrder.getTotal(),
+                null, // або передай AddressDto, якщо треба
                 itemDtos
         );
+
     }
 
     public User getCurrentUser() {
@@ -144,7 +149,7 @@ public class OrderService {
 
         List<OrderItem> items = itemDtos.stream().map(dto -> {
             Product product = productRepository.findById(dto.getProductId())
-                    .orElseThrow(() -> new RuntimeException("Product not found"));
+                    .orElseThrow(() -> new RuntimeException("Product not found with id " + dto.getProductId()));
 
             if (product.getStock() < dto.getQuantity()) {
                 throw new RuntimeException("Недостатньо товару: " + product.getName());
@@ -158,7 +163,8 @@ public class OrderService {
             item.setOrder(order);
             item.setProduct(product);
             item.setQuantity(dto.getQuantity());
-            item.setPrice(dto.getPrice());
+            // Використовуємо ціну з продукту, а не з DTO (безпечніше)
+            item.setPrice(product.getPrice());
 
             return item;
         }).toList();
@@ -170,11 +176,11 @@ public class OrderService {
 
         Order saved = orderRepository.save(order);
 
-        // Мапінг вручну
         List<OrderItemDto> resultItems = saved.getItems().stream()
                 .map(i -> new OrderItemDto(
                         i.getId(),
                         i.getProduct().getId(),
+                        i.getProduct().getName(),
                         i.getQuantity(),
                         i.getPrice()
                 )).toList();
@@ -182,9 +188,12 @@ public class OrderService {
         return new OrderDto(
                 saved.getId(),
                 saved.getUser().getId(),
+                saved.getUser().getUsername(),
+                saved.getUser().getPhone(),
                 saved.getOrderDate(),
                 saved.getStatus().name(),
                 saved.getTotal(),
+                null, // TODO: якщо потрібна адреса, передайте тут AddressDto
                 resultItems
         );
     }
@@ -246,17 +255,25 @@ public class OrderService {
                     .collect(Collectors.toList());
         }
 
-        private OrderWithAddressDto toOrderWithAddressDto(Order order) {
-            OrderWithAddressDto dto = new OrderWithAddressDto();
-            dto.setId(order.getId());
-            dto.setOrderDate(order.getOrderDate());
-            dto.setStatus(order.getStatus().name());
-            dto.setTotal(order.getTotal());
-            dto.setAddress(toAddressDto(order.getAddress()));
-            return dto;
+    private OrderWithAddressDto toOrderWithAddressDto(Order order) {
+        OrderWithAddressDto dto = new OrderWithAddressDto();
+        dto.setId(order.getId());
+        dto.setOrderDate(order.getOrderDate());
+        dto.setStatus(order.getStatus().name());
+        dto.setTotal(order.getTotal());
+        dto.setAddress(toAddressDto(order.getAddress()));
+
+        // 👇 додано
+        if (order.getUser() != null) {
+            dto.setUsername(order.getUser().getUsername());
+            dto.setPhone(order.getUser().getPhone());
         }
 
-        private AddressDto toAddressDto(Address address) {
+        return dto;
+    }
+
+
+    private AddressDto toAddressDto(Address address) {
             if (address == null) return null;
             AddressDto dto = new AddressDto();
             dto.setId(address.getId());
@@ -270,4 +287,51 @@ public class OrderService {
             dto.setIsDefault(address.getIsDefault());
             return dto;
         }
+    public List<OrderDto> getAllOrdersWithUserAndAddress() {
+        List<Order> orders = orderRepository.findAllWithUserAndAddress();
+        orders.forEach(o -> {
+            System.out.println("Order " + o.getId() + " address: " + (o.getAddress() != null ? o.getAddress().toString() : "null"));
+        });
+        return orders.stream()
+                .map(order -> {
+                    List<OrderItemDto> itemDtos = order.getItems().stream()
+                            .map(item -> OrderItemDto.builder()
+                                    .id(item.getId())
+                                    .productId(item.getProduct().getId())
+                                    .productName(item.getProduct().getName())
+                                    .quantity(item.getQuantity())
+                                    .price(item.getPrice())
+                                    .build())
+                            .collect(Collectors.toList());
+
+                    Address address = order.getAddress();
+                    AddressDto addressDto = null;
+                    if (address != null) {
+                        addressDto = AddressDto.builder()
+                                .country(address.getCountry())
+                                .city(address.getCity())
+                                .street(address.getStreet())
+                                .houseNumber(address.getHouseNumber())
+                                .apartmentNumber(address.getApartmentNumber())
+                                .region(address.getRegion())
+                                .postalCode(address.getPostalCode())
+                                .build();
+                    }
+
+                    return OrderDto.builder()
+                            .id(order.getId())
+                            .userId(order.getUser().getId())
+                            .username(order.getUser().getUsername())
+                            .phone(order.getUser().getPhone())
+                            .orderDate(order.getOrderDate())
+                            .status(order.getStatus().name())
+                            .total(order.getTotal())
+                            .address(addressDto)
+                            .items(itemDtos)
+                            .build();
+                })
+                .collect(Collectors.toList());
     }
+
+
+}

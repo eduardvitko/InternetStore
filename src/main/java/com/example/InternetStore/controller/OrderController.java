@@ -91,6 +91,10 @@ public class OrderController {
     public List<OrderWithAddressDto> getUserOrdersWithAddress(@PathVariable Integer userId) {
         return orderService.getOrdersWithAddressByUserId(userId); // ✅ правильне ім’я
     }
-
+    @GetMapping("/all/with-address")
+    public ResponseEntity<List<OrderDto>> getAllOrdersWithUserAndAddress() {
+        List<OrderDto> orders = orderService.getAllOrdersWithUserAndAddress();
+        return ResponseEntity.ok(orders);
+    }
 
 }

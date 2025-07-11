@@ -1,12 +1,15 @@
 package com.example.InternetStore.controller;
 
 import com.example.InternetStore.dto.CategoryDto;
+import com.example.InternetStore.dto.OrderDto;
 import com.example.InternetStore.dto.ProductDto;
 import com.example.InternetStore.dto.UserDto;
 import com.example.InternetStore.model.Category;
+import com.example.InternetStore.model.Order;
 import com.example.InternetStore.model.Product;
 import com.example.InternetStore.model.User;
 import com.example.InternetStore.services.CategoryServise;
+import com.example.InternetStore.services.OrderService;
 import com.example.InternetStore.services.ProductServise;
 import com.example.InternetStore.services.UserService;
 import jakarta.validation.ConstraintViolationException;
@@ -33,13 +36,15 @@ public class AdminController {
 
     private final UserService userService;
     private final CategoryServise categoryServise;
-    private ProductServise productServise;
+    private final ProductServise productServise;
+    private final OrderService orderServiсe;
 
-    public AdminController(UserService userService, CategoryServise categoryServise,ProductServise productServise) {
+    public AdminController(UserService userService, CategoryServise categoryServise,ProductServise productServise, OrderService orderServiсe) {
 
         this.userService = userService;
         this.categoryServise = categoryServise;
         this.productServise = productServise;
+        this.orderServiсe = orderServiсe;
     }
     //USER - CONTROLLERS
 
@@ -139,6 +144,12 @@ public class AdminController {
         }
      productServise.deleteById(id);
         return ResponseEntity.ok().build();
+    }
+    @GetMapping("/orders")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<OrderDto>> getAllOrdersWithUserAndAddress() {
+        List<OrderDto> orders = orderServiсe.getAllOrdersWithUserAndAddress();
+        return ResponseEntity.ok(orders);
     }
 }
 

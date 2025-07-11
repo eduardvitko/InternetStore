@@ -14,8 +14,14 @@ public class OrderDto {
 
     private Integer id;
     private Integer userId;
+    private String username;       // 👈 нове
+    private String phone;          // 👈 нове
+
     private LocalDateTime orderDate;
     private String status;
     private BigDecimal total;
+
+    private AddressDto address;    // 👈 нове
     private List<OrderItemDto> items;
+
 }

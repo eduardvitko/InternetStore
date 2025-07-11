@@ -1,18 +1,21 @@
 package com.example.InternetStore.dto;
 
-import lombok.Data;
-import lombok.Getter;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-@Getter
+
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class OrderWithAddressDto {
     private Integer id;
     private LocalDateTime orderDate;
-    private BigDecimal total;
     private String status;
-
+    private BigDecimal total;
     private AddressDto address;
 
+    private String username; // 👈 NEW
+    private String phone;    // 👈 NEW
 }
