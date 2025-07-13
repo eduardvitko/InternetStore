@@ -2,6 +2,7 @@ package com.example.InternetStore.services;
 
 import com.example.InternetStore.dto.*;
 import com.example.InternetStore.model.*;
+import com.example.InternetStore.reposietories.AddressRepository;
 import com.example.InternetStore.reposietories.OrderRepository;
 import com.example.InternetStore.reposietories.ProductRepository;
 import com.example.InternetStore.reposietories.UserRepository;
@@ -23,19 +24,24 @@ public class OrderService {
     private final UserRepository userRepository;
     private final OrderItemService orderItemService;
     private final ProductRepository productRepository;
+    private final AddressRepository addressRepository;
 
     public OrderDto mapToDto(Order order) {
         return OrderDto.builder()
                 .id(order.getId())
                 .userId(order.getUser().getId())
+                .username(order.getUser().getUsername())   // 👈 додано
+                .phone(order.getUser().getPhone())         // 👈 додано
                 .orderDate(order.getOrderDate())
                 .status(order.getStatus().name())
                 .total(order.getTotal())
+                .address(toAddressDto(order.getAddress())) // 👈 додано
                 .items(order.getItems().stream()
                         .map(orderItemService::mapToDto)
                         .collect(Collectors.toList()))
                 .build();
     }
+
 
     public Order mapToEntity(OrderDto dto) {
         User user = userRepository.findById(dto.getUserId())
@@ -63,16 +69,15 @@ public class OrderService {
     }
 
     public List<OrderDto> getAllOrders() {
-        return orderRepository.findAll().stream()
+        return getAllOrdersWithUserAndAddress(); // вже готовий метод
+    }
+
+    public List<OrderDto> getOrdersByUserId(Integer userId) {
+        return orderRepository.findAllWithUserAndAddressByUserId().stream()
                 .map(this::mapToDto)
                 .collect(Collectors.toList());
     }
 
-    public List<OrderDto> getOrdersByUserId(Integer userId) {
-        return orderRepository.findByUserId(userId).stream()
-                .map(this::mapToDto)
-                .collect(Collectors.toList());
-    }
 
     public void deleteOrder(Integer id) {
         orderRepository.deleteById(id);
@@ -288,10 +293,13 @@ public class OrderService {
             return dto;
         }
     public List<OrderDto> getAllOrdersWithUserAndAddress() {
-        List<Order> orders = orderRepository.findAllWithUserAndAddress();
+        User currentUser = getCurrentUser(); // ← отримуємо поточного користувача
+        List<Order> orders = orderRepository.findAllWithUserAndAddressByUserId();
+
         orders.forEach(o -> {
             System.out.println("Order " + o.getId() + " address: " + (o.getAddress() != null ? o.getAddress().toString() : "null"));
         });
+
         return orders.stream()
                 .map(order -> {
                     List<OrderItemDto> itemDtos = order.getItems().stream()
@@ -332,6 +340,60 @@ public class OrderService {
                 })
                 .collect(Collectors.toList());
     }
+
+    @Transactional
+    public OrderDto updateOrderAddress(Integer orderId, Integer addressId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+
+        Address address = addressRepository.findById(addressId)
+                .orElseThrow(() -> new RuntimeException("Address not found"));
+
+        order.setAddress(address);
+        orderRepository.saveAndFlush(order);
+
+        // Вручну формуємо OrderDto
+        List<OrderItemDto> itemDtos = order.getItems().stream()
+                .map(item -> OrderItemDto.builder()
+                        .id(item.getId())
+                        .productId(item.getProduct().getId())
+                        .productName(item.getProduct().getName())
+                        .quantity(item.getQuantity())
+                        .price(item.getPrice())
+                        .build())
+                .collect(Collectors.toList());
+
+        Address addressEntity = order.getAddress();
+        AddressDto addressDto = null;
+        if (addressEntity != null) {
+            addressDto = AddressDto.builder()
+                    .id(addressEntity.getId())
+                    .country(addressEntity.getCountry())
+                    .city(addressEntity.getCity())
+                    .street(addressEntity.getStreet())
+                    .houseNumber(addressEntity.getHouseNumber())
+                    .apartmentNumber(addressEntity.getApartmentNumber())
+                    .postalCode(addressEntity.getPostalCode())
+                    .region(addressEntity.getRegion())
+                    .isDefault(addressEntity.getIsDefault())
+                    .build();
+        }
+
+        return OrderDto.builder()
+                .id(order.getId())
+                .userId(order.getUser().getId())
+                .username(order.getUser().getUsername())
+                .phone(order.getUser().getPhone())
+                .orderDate(order.getOrderDate())
+                .status(order.getStatus().name())
+                .total(order.getTotal())
+                .address(addressDto)
+                .items(itemDtos)
+                .build();
+    }
+
+
+
 
 
 }

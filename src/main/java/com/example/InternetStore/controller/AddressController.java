@@ -1,8 +1,11 @@
 package com.example.InternetStore.controller;
 
 import com.example.InternetStore.dto.AddressDto;
+import com.example.InternetStore.model.User;
+import com.example.InternetStore.security.CustomUserDetails;
 import com.example.InternetStore.services.AddressService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,10 +22,14 @@ public class AddressController {
         return addressService.getUserAddresses(userId);
     }
 
-    @PostMapping
-    public AddressDto createAddress(@RequestBody AddressDto dto) {
+    @PostMapping("/create/address")
+    public AddressDto createAddress(@RequestBody AddressDto dto,
+                                    @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        dto.setUserId(userDetails.getId());
         return addressService.createAddress(dto);
     }
+
 
     @DeleteMapping("/{id}")
     public void deleteAddress(@PathVariable Integer id) {

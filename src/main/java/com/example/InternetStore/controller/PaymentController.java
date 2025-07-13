@@ -2,7 +2,9 @@
 
 package com.example.InternetStore.controller;
 
+import com.example.InternetStore.dto.OrderDto;
 import com.example.InternetStore.dto.PaymentDto;
+import com.example.InternetStore.services.OrderService;
 import com.example.InternetStore.services.PaymentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -11,6 +13,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController // Позначає клас як REST-контролер
 @RequestMapping("/api/payments") // Базовий шлях для всіх ендпоінтів у цьому контролері
@@ -18,6 +21,7 @@ import java.util.List;
 public class PaymentController {
 
     private final PaymentService paymentService; // Ін'єкція сервісу для бізнес-логіки
+    private  final OrderService orderService;
 
     /**
      * Створює новий платіж.
@@ -29,7 +33,9 @@ public class PaymentController {
     @PreAuthorize("hasRole('ADMIN')") // Тільки ADMIN може створювати платежі
     public ResponseEntity<PaymentDto> createPayment(@RequestBody PaymentDto paymentDto) {
         PaymentDto createdPayment = paymentService.createPayment(paymentDto);
+        System.out.println("Created payment: " + createdPayment);
         return new ResponseEntity<>(createdPayment, HttpStatus.CREATED);
+
     }
 
     /**
@@ -86,4 +92,6 @@ public class PaymentController {
         paymentService.deletePayment(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT); // 204 No Content
     }
+
+
 }

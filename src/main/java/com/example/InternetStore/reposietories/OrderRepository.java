@@ -17,7 +17,9 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
             "LEFT JOIN FETCH o.address a " +
             "LEFT JOIN FETCH o.items i " +
             "LEFT JOIN FETCH i.product p")
-    List<Order> findAllWithUserAndAddress();
+
+    List<Order> findAllWithUserAndAddressByUserId();
+
 
 }
 

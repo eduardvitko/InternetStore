@@ -26,10 +26,18 @@ public class AddressService {
     }
 
     public AddressDto createAddress(AddressDto dto) {
-        User user = userRepository.findById(dto.getUserId()).orElseThrow();
+        if (dto.getUserId() == null) {
+            throw new IllegalArgumentException("User ID must not be null");
+        }
+
+        User user = userRepository.findById(dto.getUserId())
+                .orElseThrow(() -> new RuntimeException("User not found with id " + dto.getUserId()));
+
         var address = dto.toEntity(user);
         return AddressDto.fromEntity(addressRepository.save(address));
     }
+
+
     public void deleteAddress(Integer id) {
         if (!addressRepository.existsById(id)) {
             throw new RuntimeException("Address with id " + id + " not found");

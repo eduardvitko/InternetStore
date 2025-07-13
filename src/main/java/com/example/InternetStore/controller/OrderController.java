@@ -9,6 +9,7 @@ import com.example.InternetStore.services.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -87,14 +88,31 @@ public class OrderController {
         }
     }
     // --- END OF NEW ENDPOINT ---
+
     @GetMapping("/user/{userId}/with-address")
     public List<OrderWithAddressDto> getUserOrdersWithAddress(@PathVariable Integer userId) {
         return orderService.getOrdersWithAddressByUserId(userId); // ✅ правильне ім’я
     }
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/all/with-address")
     public ResponseEntity<List<OrderDto>> getAllOrdersWithUserAndAddress() {
         List<OrderDto> orders = orderService.getAllOrdersWithUserAndAddress();
         return ResponseEntity.ok(orders);
     }
+
+
+    // Оновлення адреси замовлення
+    @PutMapping("/{orderId}/address/{addressId}")
+    public ResponseEntity<OrderDto> updateOrderAddress(
+            @PathVariable Integer orderId,
+            @PathVariable Integer addressId) {
+        try {
+            OrderDto updatedOrder = orderService.updateOrderAddress(orderId, addressId);
+            return ResponseEntity.ok(updatedOrder);
+        } catch (RuntimeException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage(), e);
+        }
+    }
+
 
 }
