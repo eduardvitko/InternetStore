@@ -299,6 +299,9 @@ public class OrderService {
         orders.forEach(o -> {
             System.out.println("Order " + o.getId() + " address: " + (o.getAddress() != null ? o.getAddress().toString() : "null"));
         });
+        orders.forEach(o ->
+                System.out.println("🟢 ID: " + o.getId() + " — дата: " + o.getOrderDate())
+        );
 
         return orders.stream()
                 .map(order -> {

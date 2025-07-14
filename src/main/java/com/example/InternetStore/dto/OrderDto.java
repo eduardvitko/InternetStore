@@ -1,5 +1,6 @@
 package com.example.InternetStore.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -17,7 +18,9 @@ public class OrderDto {
     private String username;       // 👈 нове
     private String phone;          // 👈 нове
 
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime orderDate;
+
     private String status;
     private BigDecimal total;
 

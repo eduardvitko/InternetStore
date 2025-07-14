@@ -1,6 +1,7 @@
 package com.example.InternetStore.reposietories;
 import com.example.InternetStore.model.Order;
 import com.example.InternetStore.model.Product;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -12,12 +13,8 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
     List<Order> findAllByUser_Id(Integer userId);
 
 
-    @Query("SELECT DISTINCT o FROM Order o " +
-            "JOIN FETCH o.user u " +
-            "LEFT JOIN FETCH o.address a " +
-            "LEFT JOIN FETCH o.items i " +
-            "LEFT JOIN FETCH i.product p")
-
+    @EntityGraph(attributePaths = {"user", "address", "items", "items.product"})
+    @Query("SELECT o FROM Order o")
     List<Order> findAllWithUserAndAddressByUserId();
 
 
