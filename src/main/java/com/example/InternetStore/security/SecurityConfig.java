@@ -46,7 +46,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
                         // Дозволяємо доступ до ваших ендпоінтів автентифікації
-                        .requestMatchers("/auth/**").permitAll() // <-- Я змінив це на /auth/**, як у ваших помилках. Якщо треба /api/auth/**, поверніть як було.
+                        .requestMatchers("/api/auth/**").permitAll()// <-- Я змінив це на /auth/**, як у ваших помилках. Якщо треба /api/auth/**, поверніть як було.
 
                         // Всі інші запити вимагають автентифікації
                         .anyRequest().authenticated()
