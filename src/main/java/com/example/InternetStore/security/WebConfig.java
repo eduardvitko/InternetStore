@@ -16,8 +16,10 @@ public class WebConfig implements WebMvcConfigurer {
 
 
         registry.addMapping("/api/**")
-                .allowedOrigins("https://your-frontend.netlify.app")
-                .allowedMethods("*")
+                .allowedOrigins("https://edinternetshop.netlify.app/")
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS") // Дозволені HTTP методи
+                .allowedHeaders("*")
+                .allowCredentials(true)
                 .allowedHeaders("*");
 
     }
