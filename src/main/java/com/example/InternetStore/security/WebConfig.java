@@ -9,9 +9,16 @@ import org.springframework.web.servlet.config.annotation.*;
 public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/**") // разрешить все пути
-                .allowedOrigins("http://localhost:3000") // разрешить React
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+//        registry.addMapping("/**") // разрешить все пути
+//                .allowedOrigins("http://localhost:3000") // разрешить React
+//                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+//                .allowedHeaders("*");
+
+
+        registry.addMapping("/api/**")
+                .allowedOrigins("https://your-frontend.netlify.app")
+                .allowedMethods("*")
                 .allowedHeaders("*");
+
     }
 }
