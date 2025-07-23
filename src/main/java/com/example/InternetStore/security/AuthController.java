@@ -54,11 +54,23 @@ public class AuthController {
         user.setUsername(request.getUsername());
         user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
         user.setPhone(request.getPhone());
-        user.setRoles(Set.of(userRole)); // передаём СУЩЕСТВУЮЩУЮ или сохранённую роль
-
-
-        userRepository.save(user);
-        return ResponseEntity.ok("User registered successfully");
+        // *** ЛОГІКА СТВОРЕННЯ АДМІНА ***
+        // Перевіряємо, чи є взагалі користувачі в базі даних.
+        if (userRepository.count() == 0) {
+            // Якщо база даних порожня, цей користувач буде першим, і ми робимо його АДМІНОМ.
+            Role adminRole = roleRepository.findByName("ADMIN")
+                    .orElseGet(() -> roleRepository.save(new Role("ADMIN")));
+            user.setRoles(Set.of(adminRole));
+            userRepository.save(user);
+            return ResponseEntity.ok("Admin user registered successfully");
+        } else {
+            // Якщо користувачі вже є, всі наступні реєструються як звичайні USER.
+            Role role = roleRepository.findByName("USER")
+                    .orElseGet(() -> roleRepository.save(new Role("USER")));
+            user.setRoles(Set.of(userRole));
+            userRepository.save(user);
+            return ResponseEntity.ok("User registered successfully");
+        }
     }
 
     @PostMapping("/login")
