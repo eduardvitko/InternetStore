@@ -38,28 +38,48 @@ public class AuthController {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    // Всередині вашого класу AuthController.java
+
     @PostMapping("/register")
     public ResponseEntity<String> register(@RequestBody AuthRequest request) {
-        System.out.println("REGISTER: " + request.getUsername() + " | " + request.getPhone());
-
-        if (userRepository.findByPhone((String) request.getPhone()).isPresent())
+        // Перевіряємо, чи існує користувач з таким телефоном або іменем
+        if (userRepository.findByPhone(request.getPhone()).isPresent()) {
             return ResponseEntity.badRequest().body("Phone already exists");
-
-        if (userRepository.findByUsername((String) request.getUsername()).isPresent())
+        }
+        if (userRepository.findByUsername(request.getUsername()).isPresent()) {
             return ResponseEntity.badRequest().body("Username already exists");
+        }
 
-        Role userRole = roleRepository.findByName("USER")
-                .orElseGet(() -> roleRepository.save(new Role("USER"))); // если не найдена, создаём
-        User user = new User();
-        user.setUsername(request.getUsername());
-        user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
-        user.setPhone(request.getPhone());
-        user.setRoles(Set.of(userRole)); // передаём СУЩЕСТВУЮЩУЮ или сохранённую роль
+        User newUser = new User();
+        newUser.setUsername(request.getUsername());
+        newUser.setPasswordHash(passwordEncoder.encode(request.getPassword()));
+        newUser.setPhone(request.getPhone());
 
+        // *** ЛОГІКА ПРИЗНАЧЕННЯ АДМІНА ЗА НОМЕРОМ ТЕЛЕФОНУ ***
 
-        userRepository.save(user);
-        return ResponseEntity.ok("User registered successfully");
+        // ВАЖЛИВО: Замініть "+380001234567" на ваш реальний номер телефону
+        final String ADMIN_PHONE_NUMBER = "+380001234567";
+
+        if (ADMIN_PHONE_NUMBER.equals(request.getPhone())) {
+            // Якщо номер телефону співпадає, робимо користувача адміном.
+            Role adminRole = roleRepository.findByName("ADMIN")
+                    .orElseGet(() -> roleRepository.save(new Role("ADMIN")));
+            newUser.setRoles(Set.of(adminRole));
+
+            userRepository.save(newUser);
+            return ResponseEntity.ok("Admin user for phone number " + ADMIN_PHONE_NUMBER + " registered successfully.");
+
+        } else {
+            // В іншому випадку, він звичайний користувач
+            Role userRole = roleRepository.findByName("USER")
+                    .orElseGet(() -> roleRepository.save(new Role("USER")));
+            newUser.setRoles(Set.of(userRole));
+
+            userRepository.save(newUser);
+            return ResponseEntity.ok("User registered successfully.");
+        }
     }
+
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthRequest request) {
