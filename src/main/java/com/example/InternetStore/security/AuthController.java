@@ -58,7 +58,7 @@ public class AuthController {
         // *** ЛОГІКА ПРИЗНАЧЕННЯ АДМІНА ЗА НОМЕРОМ ТЕЛЕФОНУ ***
 
         // ВАЖЛИВО: Замініть "+380001234567" на ваш реальний номер телефону
-        final String ADMIN_PHONE_NUMBER = "+380001234567";
+        final String ADMIN_PHONE_NUMBER = "+380637097311";
 
         if (ADMIN_PHONE_NUMBER.equals(request.getPhone())) {
             // Якщо номер телефону співпадає, робимо користувача адміном.
