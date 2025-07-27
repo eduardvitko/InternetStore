@@ -2,22 +2,19 @@ package com.example.InternetStore.services;
 
 
 import com.example.InternetStore.dto.CategoryDto;
-import com.example.InternetStore.dto.UserDto;
 import com.example.InternetStore.model.Category;
-import com.example.InternetStore.model.User;
 import com.example.InternetStore.reposietories.CategoryRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 @Service
-public class CategoryServise {
+public class CategoryServiсe {
 
     private final CategoryRepository categoryRepository;
 
-    public CategoryServise(CategoryRepository categoryRepository) {
+    public CategoryServiсe(CategoryRepository categoryRepository) {
         this.categoryRepository = categoryRepository;
     }
 

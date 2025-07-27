@@ -5,10 +5,9 @@ import com.example.InternetStore.dto.OrderDto;
 import com.example.InternetStore.dto.ProductDto;
 import com.example.InternetStore.dto.UserDto;
 import com.example.InternetStore.model.Category;
-import com.example.InternetStore.model.Order;
 import com.example.InternetStore.model.Product;
 import com.example.InternetStore.model.User;
-import com.example.InternetStore.services.CategoryServise;
+import com.example.InternetStore.services.CategoryServiсe;
 import com.example.InternetStore.services.OrderService;
 import com.example.InternetStore.services.ProductServise;
 import com.example.InternetStore.services.UserService;
@@ -17,14 +16,10 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.validation.BindingResult;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -35,14 +30,14 @@ public class AdminController {
 
 
     private final UserService userService;
-    private final CategoryServise categoryServise;
+    private final CategoryServiсe categoryServiсe;
     private final ProductServise productServise;
     private final OrderService orderServiсe;
 
-    public AdminController(UserService userService, CategoryServise categoryServise,ProductServise productServise, OrderService orderServiсe) {
+    public AdminController(UserService userService, CategoryServiсe categoryServiсe, ProductServise productServise, OrderService orderServiсe) {
 
         this.userService = userService;
-        this.categoryServise = categoryServise;
+        this.categoryServiсe = categoryServiсe;
         this.productServise = productServise;
         this.orderServiсe = orderServiсe;
     }
@@ -89,27 +84,27 @@ public class AdminController {
 
     @GetMapping("/all/categories")
     public List<CategoryDto> getAllCategories() {
-        return categoryServise.getAllCategories();
+        return categoryServiсe.getAllCategories();
     }
 
     @DeleteMapping("/delete/category/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> deleteCategory(@PathVariable Integer id) {
-        if (!categoryServise.existsById(id)) {
+        if (!categoryServiсe.existsById(id)) {
             return ResponseEntity.notFound().build();
         }
-        categoryServise.deleteById(id);
+        categoryServiсe.deleteById(id);
         return ResponseEntity.ok().build();
     }
     @PutMapping("/update/category/{id}")
     public ResponseEntity<?> updateCategory(@PathVariable Integer id, @RequestBody Category updateCategory) {
-        return categoryServise.updateCategory(id, updateCategory)
+        return categoryServiсe.updateCategory(id, updateCategory)
                 .map(category -> ResponseEntity.ok().body("Category updated"))
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
     @PostMapping("/create/category")
     public Category createCategory(@RequestBody Category category) {
-        return categoryServise.create(category);
+        return categoryServiсe.create(category);
     }
 
     //PRODUCTS - CONTROLLER

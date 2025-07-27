@@ -1,12 +1,8 @@
 package com.example.InternetStore.controller;
 
 
-import com.example.InternetStore.dto.CategoryDto;
 import com.example.InternetStore.dto.ProductDto;
 import com.example.InternetStore.dto.SearchResultDto;
-import com.example.InternetStore.reposietories.CategoryRepository;
-import com.example.InternetStore.reposietories.ProductRepository;
-import com.example.InternetStore.services.CategoryServise;
 import com.example.InternetStore.services.ProductServise;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
