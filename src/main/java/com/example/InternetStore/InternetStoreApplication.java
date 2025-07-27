@@ -4,6 +4,7 @@ import com.example.InternetStore.model.Role;
 import com.example.InternetStore.model.User;
 import com.example.InternetStore.reposietories.RoleRepository;
 import com.example.InternetStore.reposietories.UserRepository;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -12,11 +13,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Set;
-import java.util.logging.Logger;
+
 
 @SpringBootApplication
 public class InternetStoreApplication {
-	private static final Logger logger = (Logger) LoggerFactory.getLogger(InternetStoreApplication.class);
+	private static final Logger logger = LoggerFactory.getLogger(InternetStoreApplication.class);
 
 	public static void main(String[] args) {
 		SpringApplication.run(InternetStoreApplication.class, args);
@@ -24,23 +25,5 @@ public class InternetStoreApplication {
 	}
 
 
-//	@Bean
-//	public CommandLineRunner init(UserRepository userRepo, RoleRepository roleRepo, PasswordEncoder encoder) {
-//		return args -> {
-//			if (userRepo.findByUsername("admin").isEmpty()) {
-//				Role adminRole = roleRepo.findByName("ADMIN")
-//						.orElseGet(() -> roleRepo.save(new Role("ADMIN")));
-//
-//				User admin = new User();
-//				admin.setUsername("admin");
-//				admin.setEmail("d@example.com");
-//				admin.setPhone("+380664521789");
-//				admin.setPasswordHash(encoder.encode("eduard"));
-//				admin.setRoles(Set.of(adminRole));
-//
-//				userRepo.save(admin);
-//			}
-//		};
-//	}
 }
 
