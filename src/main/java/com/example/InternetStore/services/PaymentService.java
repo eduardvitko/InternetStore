@@ -22,10 +22,7 @@ public class PaymentService {
     private final PaymentRepository paymentRepository;
     private final OrderRepository orderRepository;
 
-    public PaymentService(PaymentRepository paymentRepository, OrderRepository orderRepository) {
-        this.paymentRepository = paymentRepository;
-        this.orderRepository = orderRepository;
-    }
+
 
     // Створити новий платіж
     @Transactional
