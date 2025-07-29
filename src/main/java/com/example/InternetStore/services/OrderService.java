@@ -73,8 +73,12 @@ public class OrderService {
     }
 
     public List<OrderDto> getOrdersByUserId(Integer userId) {
-        return orderRepository.findAllWithUserAndAddressByUserId().stream()
-                .map(this::mapToDto)
+        // Викликаємо ПРАВИЛЬНИЙ метод репозиторію, який фільтрує за userId
+        List<Order> userOrders = orderRepository.findByUserId(userId);
+
+        // Конвертуємо знайдені замовлення в DTO
+        return userOrders.stream()
+                .map(this::mapToDto) // Використовуємо ваш існуючий mapToDto
                 .collect(Collectors.toList());
     }
 
