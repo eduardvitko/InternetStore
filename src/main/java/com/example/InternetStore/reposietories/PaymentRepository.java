@@ -9,4 +9,6 @@ public interface PaymentRepository extends JpaRepository<Payment, Integer> {
 
     // Отримати всі платежі за конкретним замовленням
     List<Payment> findByOrderId(Integer orderId);
+    List<Payment> findByOrderIdIn(List<Integer> orderIds);
+
 }

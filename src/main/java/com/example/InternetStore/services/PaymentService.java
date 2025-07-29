@@ -5,10 +5,13 @@ package com.example.InternetStore.services;
 import com.example.InternetStore.dto.PaymentDto;
 import com.example.InternetStore.model.Order;
 import com.example.InternetStore.model.Payment;
+import com.example.InternetStore.model.User;
 import com.example.InternetStore.reposietories.OrderRepository;
 import com.example.InternetStore.reposietories.PaymentRepository;
+import com.example.InternetStore.reposietories.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +24,7 @@ public class PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final OrderRepository orderRepository;
+    private final UserRepository userRepository;
 
 
 
@@ -132,5 +136,49 @@ public class PaymentService {
             throw new EntityNotFoundException("Payment with ID " + id + " not found for deletion");
         }
         paymentRepository.deleteById(id);
+    }
+    /**
+     * Знаходить усі платежі, що належать користувачу з вказаним ім'ям (username).
+     * @param username Ім'я користувача (зазвичай email), отримане з токена.
+     * @return Список PaymentDto, що належать цьому користувачу.
+     */
+    public List<PaymentDto> findPaymentsByUsername(String username) {
+        // 1. Знаходимо користувача в базі даних за його ім'ям.
+        //    Якщо користувача не знайдено, викидаємо виняток.
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("Користувача з ім'ям '" + username + "' не знайдено."));
+
+        // 2. Знаходимо всі замовлення, що належать цьому користувачу.
+        List<Order> userOrders = orderRepository.findByUser(user);
+
+        // 3. Збираємо ID всіх замовлень цього користувача в один список.
+        List<Integer> userOrderIds = userOrders.stream()
+                .map(Order::getId)
+                .collect(Collectors.toList());
+
+        // Якщо у користувача немає замовлень, то й платежів бути не може. Повертаємо порожній список.
+        if (userOrderIds.isEmpty()) {
+            return List.of(); // або Collections.emptyList()
+        }
+
+        // 4. Знаходимо всі платежі, у яких orderId знаходиться у списку ID замовлень користувача.
+        //    Для цього вам потрібно буде додати відповідний метод у ваш PaymentRepository.
+        List<Payment> payments = paymentRepository.findByOrderIdIn(userOrderIds);
+
+        // 5. Конвертуємо знайдені сутності Payment у PaymentDto і повертаємо.
+        return payments.stream()
+                .map(this::convertToDto) // Припускаємо, що у вас є метод для конвертації
+                .collect(Collectors.toList());
+    }
+    private PaymentDto convertToDto(Payment payment) {
+        if (payment == null) return null;
+
+        return PaymentDto.builder()
+                .id(payment.getId())
+                .orderId(payment.getOrderId()) // <-- ТЕПЕР ВИКОРИСТОВУЄМО ПРЯМИЙ ДОСТУП ДО ID
+                .paymentDate(payment.getPaymentDate())
+                .amount(payment.getAmount())
+                .method(payment.getMethod())
+                .build();
     }
 }
