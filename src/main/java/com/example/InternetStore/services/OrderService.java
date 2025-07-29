@@ -14,7 +14,6 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -414,56 +413,20 @@ public class OrderService {
                 .collect(Collectors.toList());
     }
 
+    // Переконайтесь, що у вас є метод-конвертер
     private OrderDto convertToDto(Order order) {
-        if (order == null) return null;
-
-        // Створюємо DTO
-        OrderDto dto = OrderDto.builder()
+        // ... ваша логіка конвертації з Order в OrderDto
+        // Наприклад:
+        return OrderDto.builder()
                 .id(order.getId())
                 .userId(order.getUser().getId())
                 .username(order.getUser().getUsername())
                 .orderDate(order.getOrderDate())
                 .status(order.getStatus().name())
                 .total(order.getTotal())
-                .build();
-
-        // ↓↓↓ ОСЬ ВАЖЛИВЕ ВИПРАВЛЕННЯ ↓↓↓
-        // Перевіряємо, чи є товари в замовленні, і конвертуємо їх
-        if (order.getItems() != null && !order.getItems().isEmpty()) {
-            List<OrderItemDto> itemDtos = order.getItems().stream()
-                    .map(this::convertItemToDto) // Припускаємо, що у вас є метод для конвертації товарів
-                    .collect(Collectors.toList());
-            dto.setItems(itemDtos);
-        } else {
-            dto.setItems(new ArrayList<>()); // Важливо: встановлюємо порожній список, а не null
-        }
-
-        // ... (логіка для адреси, якщо вона є)
-
-        return dto;
-    }
-    // Допоміжний метод для конвертації товарів
-    private OrderItemDto convertItemToDto(OrderItem item) {
-        if (item == null) {
-            return null;
-        }
-
-        // Отримуємо зв'язаний об'єкт Product. Завдяки @Transactional, це буде безпечно.
-        Product product = item.getProduct();
-
-        return OrderItemDto.builder()
-                .id(item.getId())
-
-                // Встановлюємо productId, перевіряючи, чи існує об'єкт product
-                .productId(product != null ? product.getId() : null)
-
-                // ↓↓↓ ОСЬ КЛЮЧОВЕ ВИПРАВЛЕННЯ ↓↓↓
-                // Беремо назву товару ВИКЛЮЧНО з об'єкта Product.
-                // Якщо Product відсутній (наприклад, був видалений), встановлюємо запасне значення.
-                .productName(product != null ? product.getName() : "Товар було видалено")
-
-                .quantity(item.getQuantity())
-                .price(item.getPrice())
+                // ... маппінг товарів та адреси
                 .build();
     }
+
+
 }
