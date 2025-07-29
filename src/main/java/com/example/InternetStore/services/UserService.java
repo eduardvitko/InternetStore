@@ -80,7 +80,9 @@ public class UserService {
         // Повертаємо збережений User як UserDto (опціонально)
         return new UserDto(savedUser.getId(), savedUser.getUsername(), savedUser.getPhone(), /*roles*/ null);
     }
-
+    public Optional<User> findByUsername(String username) {
+        return userRepository.findByUsername(username);
+    }
 
 
 }

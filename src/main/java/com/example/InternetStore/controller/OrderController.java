@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -22,7 +24,18 @@ public class OrderController {
 
     private final OrderService orderService;
     private final UserService userService;
+    @GetMapping("/my")
+    public ResponseEntity<List<OrderDto>> getMyOrders(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not authenticated");
+        }
 
+        String username = authentication.getName();
+        // Вам потрібно буде реалізувати цей метод в OrderService
+        List<OrderDto> userOrders = orderService.findOrdersByUsername(username);
+
+        return ResponseEntity.ok(userOrders);
+    }
     // Get all orders (admin or specific roles only, consider security)
     @GetMapping("/all")
     public ResponseEntity<List<OrderDto>> getAllOrders() {
@@ -32,9 +45,30 @@ public class OrderController {
     // Get user's orders by userId
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<OrderDto>> getOrdersByUser(@PathVariable Integer userId) {
+        // Отримуємо дані поточного авторизованого користувача
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not authenticated");
+        }
+        String currentUsername = authentication.getName();
+        User currentUser = userService.findByUsername(currentUsername)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User details not found"));
+
+        // Перевіряємо, чи є поточний користувач адміном
+        boolean isAdmin = currentUser.getRoles().stream()
+                .anyMatch(role -> role.getName().equals("ADMIN"));
+
+        // ↓↓↓ ОСЬ КЛЮЧОВЕ ВИПРАВЛЕННЯ ↓↓↓
+        // Використовуємо оператор '==' для порівняння числових ID.
+        // Java автоматично виконає "розпакування" (unboxing) Integer до int.
+        if (currentUser.getId() != userId && !isAdmin) {
+            // Якщо ID не збігаються І користувач не є адміном, забороняємо доступ
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        // Якщо перевірка пройдена - повертаємо замовлення
         return ResponseEntity.ok(orderService.getOrdersByUserId(userId));
     }
-
     // Create a new order
     @PostMapping("/create")
     public ResponseEntity<OrderDto> createOrder(@RequestBody List<OrderItemDto> items) {

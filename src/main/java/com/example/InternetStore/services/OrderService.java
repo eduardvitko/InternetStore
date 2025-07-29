@@ -10,6 +10,7 @@ import com.example.InternetStore.security.CustomUserDetails;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -396,7 +397,36 @@ public class OrderService {
     }
 
 
+    public List<OrderDto> findOrdersByUsername(String username) {
+        // 1. Знаходимо користувача в базі даних за його ім'ям.
+        //    Якщо користувача не знайдено, викидаємо виняток.
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("Користувача з ім'ям '" + username + "' не знайдено."));
 
+        // 2. Знаходимо всі замовлення, що належать цьому користувачу.
+        //    Для цього вам потрібно буде додати метод findByUser у ваш OrderRepository.
+        List<Order> userOrders = orderRepository.findByUser(user);
+
+        // 3. Конвертуємо знайдені сутності Order у OrderDto і повертаємо.
+        return userOrders.stream()
+                .map(this::convertToDto) // Припускаємо, що у вас є метод для конвертації
+                .collect(Collectors.toList());
+    }
+
+    // Переконайтесь, що у вас є метод-конвертер
+    private OrderDto convertToDto(Order order) {
+        // ... ваша логіка конвертації з Order в OrderDto
+        // Наприклад:
+        return OrderDto.builder()
+                .id(order.getId())
+                .userId(order.getUser().getId())
+                .username(order.getUser().getUsername())
+                .orderDate(order.getOrderDate())
+                .status(order.getStatus().name())
+                .total(order.getTotal())
+                // ... маппінг товарів та адреси
+                .build();
+    }
 
 
 }
