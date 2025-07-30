@@ -11,7 +11,7 @@ public class Image {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(nullable = false)
+    @Column(name = "url", nullable = false, length = 2048) // <-- Збільшуємо довжину до 2048 символів
     private String url;
 
     private String altText;
