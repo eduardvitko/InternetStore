@@ -40,12 +40,33 @@ public class SecurityConfig {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
+
+                // ↓↓↓ ОСЬ ОНОВЛЕНИЙ БЛОК ↓↓↓
                 .authorizeHttpRequests(auth -> auth
+                        // --- ПУБЛІЧНІ МАРШРУТИ (доступні для всіх) ---
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/categories/**", "/api/products/**").permitAll()
-                        .anyRequest().authenticated()
+                        // Дозволяємо всім переглядати зображення
+                        .requestMatchers(HttpMethod.GET, "/api/images/**").permitAll()
+
+                        // --- МАРШРУТИ ДЛЯ АВТОРИЗОВАНИХ КОРИСТУВАЧІВ (будь-яких) ---
+                        .requestMatchers("/api/user/me").authenticated()
+                        .requestMatchers("/api/addresses/**").authenticated()
+                        .requestMatchers("/api/orders/**").authenticated()
+                        .requestMatchers("/api/payments/**").authenticated()
+
+                        // --- МАРШРУТИ ТІЛЬКИ ДЛЯ АДМІНІВ ---
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        // Явно дозволяємо адмінам змінювати зображення
+                        .requestMatchers(HttpMethod.POST, "/api/images").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/images/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/images/**").hasRole("ADMIN")
+
+                        // Всі інші, неперераховані запити, заборонені. Це безпечніше.
+                        .anyRequest().denyAll()
                 )
+
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authProvider())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
