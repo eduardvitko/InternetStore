@@ -3,6 +3,7 @@ package com.example.InternetStore.dto;
 
 import com.example.InternetStore.model.Role;
 import com.example.InternetStore.model.User;
+import jakarta.persistence.Column;
 import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -17,10 +18,13 @@ public class UserDto {
     private Integer id;
 
     @Pattern(regexp = "^[a-zA-Zа-яА-ЯіїєІЇЄґҐ]+$", message = "Ім’я користувача може містити лише літери українського або англійського алфавіту")
+    @Column(nullable = false, unique = true)
     private String username;
 
     @Pattern(regexp = "^\\+?\\d+$", message = "Телефон має містити тільки цифри та може починатись з +")
+    @Column(nullable = false, unique = true)
     private String phone;
+
     private Set<String> roles;
 
     public UserDto(User user) {
