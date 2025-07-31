@@ -3,6 +3,7 @@ package com.example.InternetStore.security;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -36,44 +37,48 @@ public class SecurityConfig {
     private UserDetailsServiceImpl userDetailsService;
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    @Order(1)
+    public SecurityFilterChain publicEndpoints(HttpSecurity http) throws Exception {
+        http
+                .securityMatcher("/api/auth/**", "/api/categories/**", "/api/products/**") // Обробляємо тільки ці шляхи
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(auth -> auth
+                        .anyRequest().permitAll() // Дозволяємо абсолютно всі запити, що підпали під securityMatcher
+                );
+        return http.build();
+    }
+    // ↑↑↑↑↑↑  КІНЕЦЬ НОВОГО БЛОКУ  ↑↑↑↑↑↑
+
+
+    // ↓↓↓↓↓↓  ОНОВЛЕНИЙ БЛОК ДЛЯ ЗАХИЩЕНИХ МАРШРУТІВ  ↓↓↓↓↓↓
+    /**
+     * Цей ланцюжок фільтрів має нижчий пріоритет (Order(2)) і обробляє
+     * всі ІНШІ маршрути, застосовуючи до них JWT-аутентифікацію.
+     */
+    @Bean
+    @Order(2)
+    public SecurityFilterChain protectedEndpoints(HttpSecurity http) throws Exception {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
-
-                // ↓↓↓ ОСЬ ОНОВЛЕНИЙ БЛОК ↓↓↓
                 .authorizeHttpRequests(auth -> auth
-                        // --- ПУБЛІЧНІ МАРШРУТИ (доступні для всіх) ---
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/categories/**", "/api/products/**").permitAll()
-                        // Дозволяємо всім переглядати зображення
-                        .requestMatchers(HttpMethod.GET, "/api/images/**").permitAll()
-
-                        // --- МАРШРУТИ ДЛЯ АВТОРИЗОВАНИХ КОРИСТУВАЧІВ (будь-яких) ---
-                        .requestMatchers("/api/user/me").authenticated()
-                        .requestMatchers("/api/addresses/**").authenticated()
-                        .requestMatchers("/api/orders/**").authenticated()
-                        .requestMatchers("/api/payments/**").authenticated()
-
-                        // --- МАРШРУТИ ТІЛЬКИ ДЛЯ АДМІНІВ ---
+                        // Правила для авторизованих користувачів
+                        .requestMatchers("/api/user/me", "/api/addresses/**", "/api/orders/**", "/api/payments/**").authenticated()
+                        // Правила для адмінів
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                        // Явно дозволяємо адмінам змінювати зображення
                         .requestMatchers(HttpMethod.POST, "/api/images").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/images/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/images/**").hasRole("ADMIN")
-
-                        // Всі інші, неперераховані запити, заборонені. Це безпечніше.
-                        .anyRequest().denyAll()
+                        // Всі інші запити, що дійшли сюди, вимагають автентифікації
+                        .anyRequest().authenticated()
                 )
-
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authProvider())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
-
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
