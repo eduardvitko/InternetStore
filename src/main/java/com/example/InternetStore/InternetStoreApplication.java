@@ -21,7 +21,7 @@ public class InternetStoreApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(InternetStoreApplication.class, args);
-		logger.info("<<<<< ЗАСТОСУНОК ЗАПУЩЕНО З ОСТАННЬОЮ ВЕРСІЄЮ КОДУ >>>>>");
+		logger.info("<<<<< ЗАСТОСУНОК ЗАПУЩЕНО З ОСТАННЬОЮ ВЕРСІЄЮ SECURITY CONFIG! >>>>>");
 	}
 
 
