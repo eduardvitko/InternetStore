@@ -28,46 +28,37 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                                     FilterChain filterChain)
             throws ServletException, IOException {
 
-        String path = request.getServletPath();
+        // ↓↓↓ ВИДАЛЕНО БЛОК З ПЕРЕВІРКОЮ `path.startsWith("/api/auth")` ↓↓↓
 
-        // Пропускаємо фільтрацію для публічних маршрутів (наприклад, логін)
-        if (path.startsWith("/api/auth")) {
+        final String authHeader = request.getHeader("Authorization");
+
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            // Якщо заголовка немає, просто передаємо запит далі.
+            // SecurityConfig сам вирішить, чи можна на цей шлях без токена.
             filterChain.doFilter(request, response);
             return;
         }
 
-        final String authHeader = request.getHeader("Authorization");
+        String jwtToken = authHeader.substring(7);
 
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            String jwtToken = authHeader.substring(7);
+        try {
+            String username = jwtUtil.extractUsername(jwtToken);
+            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
-            try {
-                String username = jwtUtil.extractUsername(jwtToken);
-
-                if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                    CustomUserDetails userDetails = (CustomUserDetails) userDetailsService.loadUserByUsername(username);
-
-
-                    if (jwtUtil.validateToken(jwtToken, userDetails)) {
-                        UsernamePasswordAuthenticationToken authToken =
-                                new UsernamePasswordAuthenticationToken(
-                                        userDetails,
-                                        null,
-                                        userDetails.getAuthorities()
-                                );
-                        SecurityContextHolder.getContext().setAuthentication(authToken);
-                        System.out.println("✅ User authenticated: " + username);
-                    } else {
-                        System.out.println("⛔ Token is not valid for user: " + username);
-                    }
+                if (jwtUtil.validateToken(jwtToken, userDetails)) {
+                    UsernamePasswordAuthenticationToken authToken =
+                            new UsernamePasswordAuthenticationToken(
+                                    userDetails,
+                                    null,
+                                    userDetails.getAuthorities()
+                            );
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
-
-            } catch (Exception e) {
-                System.out.println("⚠️ Error validating JWT: " + e.getMessage());
             }
-
-        } else {
-            System.out.println("🔒 Authorization header missing or invalid.");
+        } catch (Exception e) {
+            // Можна додати логування для налагодження
+            System.out.println("Invalid JWT Token received: " + e.getMessage());
         }
 
         filterChain.doFilter(request, response);
