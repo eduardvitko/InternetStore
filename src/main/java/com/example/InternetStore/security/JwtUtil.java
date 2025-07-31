@@ -38,6 +38,14 @@ public class JwtUtil {
                 .signWith(secretKey, SignatureAlgorithm.HS512)
                 .compact();
     }
+    public String generateToken(String username) {
+        return Jwts.builder()
+                .setSubject(username)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
+                .signWith(secretKey, SignatureAlgorithm.HS512)
+                .compact();
+    }
 
     public String extractUsername(String token) {
         if (token == null || !token.contains(".")) {

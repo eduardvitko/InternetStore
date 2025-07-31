@@ -18,6 +18,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 @RestController
@@ -41,44 +43,51 @@ public class AuthController {
     // Всередині вашого класу AuthController.java
 
     @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody AuthRequest request) {
-        // Перевіряємо, чи існує користувач з таким телефоном або іменем
+    public ResponseEntity<?> register(@RequestBody AuthRequest request) {
+        // Перевірка на дублікат телефону
         if (userRepository.findByPhone(request.getPhone()).isPresent()) {
-            return ResponseEntity.badRequest().body("Phone already exists");
-        }
-        if (userRepository.findByUsername(request.getUsername()).isPresent()) {
-            return ResponseEntity.badRequest().body("Username already exists");
+            // Створюємо Map для відповіді з помилкою
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("message", "Користувач з таким телефоном вже існує.");
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
         }
 
+        // Перевірка на дублікат імені користувача
+        if (userRepository.findByUsername(request.getUsername()).isPresent()) {
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("message", "Користувач з таким ім'ям вже існує.");
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+        }
+
+        // Створення нового користувача
         User newUser = new User();
         newUser.setUsername(request.getUsername());
         newUser.setPasswordHash(passwordEncoder.encode(request.getPassword()));
         newUser.setPhone(request.getPhone());
 
-        // *** ЛОГІКА ПРИЗНАЧЕННЯ АДМІНА ЗА НОМЕРОМ ТЕЛЕФОНУ ***
-
-        // ВАЖЛИВО: Замініть "+380001234567" на ваш реальний номер телефону
+        // Логіка призначення ролі (без змін, вона правильна)
         final String ADMIN_PHONE_NUMBER = "+380637097311";
-
         if (ADMIN_PHONE_NUMBER.equals(request.getPhone())) {
-            // Якщо номер телефону співпадає, робимо користувача адміном.
             Role adminRole = roleRepository.findByName("ADMIN")
                     .orElseGet(() -> roleRepository.save(new Role("ADMIN")));
             newUser.setRoles(Set.of(adminRole));
-
-            userRepository.save(newUser);
-            return ResponseEntity.ok("Admin user for phone number " + ADMIN_PHONE_NUMBER + " registered successfully.");
-
         } else {
-            // В іншому випадку, він звичайний користувач
             Role userRole = roleRepository.findByName("USER")
                     .orElseGet(() -> roleRepository.save(new Role("USER")));
             newUser.setRoles(Set.of(userRole));
-
-            userRepository.save(newUser);
-            return ResponseEntity.ok("User registered successfully.");
         }
+
+        // Зберігаємо нового користувача в базу даних
+        userRepository.save(newUser);
+
+        // Після успішного збереження, генеруємо для нього токен
+        // Переконайтесь, що ваш JwtUtil має метод generateToken, який приймає String (username)
+        final String token = jwtUtil.generateToken(newUser.getUsername());
+
+        // Повертаємо токен на фронтенд у вигляді об'єкта AuthResponse
+        return ResponseEntity.ok(new AuthResponse(token));
     }
+
 
 
     @PostMapping("/login")
