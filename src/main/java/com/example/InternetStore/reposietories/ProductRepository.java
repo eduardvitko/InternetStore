@@ -30,6 +30,7 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
    @Query("SELECT p FROM Product p WHERE LOWER(p.name) LIKE LOWER(CONCAT('%', :query, '%'))")
     List<Product> findByNameContainingIgnoreCase(@Param("query") String query);
 
+
     @Query("SELECT new com.example.InternetStore.dto.ProductDto(p.id, p.name, p.price) FROM Product p WHERE LOWER(p.name) LIKE LOWER(CONCAT('%', :query, '%'))")
     List<ProductDto> searchProducts(@Param("query") String query);
     @Query("SELECT DISTINCT p FROM Product p " +

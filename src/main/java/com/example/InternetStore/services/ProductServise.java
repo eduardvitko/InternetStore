@@ -138,12 +138,16 @@ public class ProductServise {
 //                .map(this::toDto)
 //                .collect(Collectors.toList());
 //    }
-    public List<ProductDto> searchProducts(String query) {
-        List<Product> products = productRepository.searchProductsWithCategoryAndImages(query.toLowerCase());
-        return products.stream()
-                .map(ProductDto::new)  // конвертуємо Product → ProductDto
-                .collect(Collectors.toList());
-    }
+public List<ProductDto> searchProducts(String query) {
+    // 1. Викликаємо правильний метод репозиторію
+    List<Product> foundProducts = productRepository.findByNameContainingIgnoreCase(query);
+
+    // 2. Конвертуємо кожну знайдену сутність Product в ProductDto за допомогою вашого конструктора.
+    //    Завдяки @Transactional, всі "ліниві" поля (category, images) будуть доступні.
+    return foundProducts.stream()
+            .map(ProductDto::new) // Це еквівалентно .map(product -> new ProductDto(product))
+            .collect(Collectors.toList());
+}
 
     private ProductDto toDto(Product entity) {
         ProductDto dto = new ProductDto();
